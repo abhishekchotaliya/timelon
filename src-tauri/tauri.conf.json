@@ -13,26 +13,15 @@
     "withGlobalTauri": false,
     "windows": [
       {
-        "label": "popover",
-        "url": "popover.html",
-        "width": 320,
-        "height": 420,
-        "decorations": false,
-        "resizable": false,
-        "alwaysOnTop": true,
-        "visible": false,
-        "skipTaskbar": true,
-        "shadow": true
-      },
-      {
         "label": "main",
         "url": "index.html",
         "title": "Timelon",
-        "width": 800,
-        "height": 600,
-        "resizable": false,
-        "maximizable": false,
-        "visible": false
+        "width": 760,
+        "height": 560,
+        "minWidth": 680,
+        "minHeight": 480,
+        "center": true,
+        "visible": true
       }
     ],
     "security": {

@@ -2,7 +2,7 @@
 
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Emitter, Manager, PhysicalPosition};
+use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_notification::NotificationExt;
 
 use crate::timer::{fmt_mmss, PhaseChange, TimerSnapshot};
@@ -49,11 +49,10 @@ pub fn build_tray(app: &AppHandle) -> tauri::Result<()> {
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
                 button_state: MouseButtonState::Up,
-                position,
                 ..
             } = event
             {
-                toggle_popover(tray.app_handle(), position);
+                toggle_main(tray.app_handle());
             }
         });
 
@@ -118,42 +117,16 @@ fn handle_menu(app: &AppHandle, id: &str) {
     }
 }
 
-/// Popover width in logical pixels (matches tauri.conf.json).
-const POPOVER_W: f64 = 320.0;
-/// Approximate macOS menu-bar height in logical pixels.
-const MENU_BAR_H: f64 = 24.0;
-
-fn toggle_popover(app: &AppHandle, cursor: PhysicalPosition<f64>) {
-    let Some(w) = app.get_webview_window("popover") else {
-        return;
-    };
-    if w.is_visible().unwrap_or(false) {
-        let _ = w.hide();
-        return;
-    }
-
-    // Position manually (the positioner plugin panics on current_monitor().unwrap()
-    // for a freshly shown window). Anchor to the monitor under the clicked tray
-    // icon so it lands correctly on any display in a multi-monitor setup, centered
-    // on the click and clamped within that monitor's bounds.
-    let (x, y) = match w.monitor_from_point(cursor.x, cursor.y) {
-        Ok(Some(mon)) => {
-            let scale = mon.scale_factor();
-            let mp = mon.position();
-            let ms = mon.size();
-            let win_w = (POPOVER_W * scale) as i32;
-            let min_x = mp.x;
-            let max_x = (mp.x + ms.width as i32 - win_w).max(min_x);
-            let x = ((cursor.x as i32) - win_w / 2).clamp(min_x, max_x);
-            let y = mp.y + (MENU_BAR_H * scale) as i32;
-            (x, y)
+/// Tray left-click toggles the single app window.
+fn toggle_main(app: &AppHandle) {
+    if let Some(w) = app.get_webview_window("main") {
+        if w.is_visible().unwrap_or(false) {
+            let _ = w.hide();
+        } else {
+            let _ = w.show();
+            let _ = w.set_focus();
         }
-        // Fallback: best-effort relative to the cursor.
-        _ => ((cursor.x as i32) - 160, (cursor.y as i32) + 8),
-    };
-    let _ = w.set_position(PhysicalPosition::new(x, y));
-    let _ = w.show();
-    let _ = w.set_focus();
+    }
 }
 
 pub fn show_main(app: &AppHandle, tab: &str) {
@@ -168,12 +141,122 @@ pub fn show_main(app: &AppHandle, tab: &str) {
 /// tooltip. We set both so the live MM:SS is visible cross-platform.
 pub fn update_tray_title(app: &AppHandle, snap: &TimerSnapshot) {
     if let Some(tray) = app.tray_by_id(TRAY_ID) {
-        // Title is text only — the flat tray icon already represents the app, so
-        // an emoji glyph here would show a second (color) tomato in the menu bar.
         let time = fmt_mmss(snap.remaining_secs);
-        let _ = tray.set_title(Some(time.clone()));
+        // Render the clock + time as a fixed-width template image instead of a
+        // text title. macOS has no API to set a tabular/monospaced font on the
+        // tray title, so proportional digits (e.g. 0 vs 1) make the menu-bar
+        // item jitter in width. A bitmap font keeps every glyph cell constant.
+        let _ = tray.set_icon(Some(render_tray_image(&time)));
+        let _ = tray.set_icon_as_template(true);
+        let _ = tray.set_title(None::<&str>);
         let _ = tray.set_tooltip(Some(format!("{} — {}", snap.phase.label(), time)));
     }
+}
+
+/// 3x5 bitmap font: digits 0-9 then ':' (index 10). Low 3 bits per row, bit2=left.
+const FONT: [[u8; 5]; 11] = [
+    [0b111, 0b101, 0b101, 0b101, 0b111], // 0
+    [0b010, 0b010, 0b010, 0b010, 0b010], // 1
+    [0b111, 0b001, 0b111, 0b100, 0b111], // 2
+    [0b111, 0b001, 0b111, 0b001, 0b111], // 3
+    [0b101, 0b101, 0b111, 0b001, 0b001], // 4
+    [0b111, 0b100, 0b111, 0b001, 0b111], // 5
+    [0b111, 0b100, 0b111, 0b101, 0b111], // 6
+    [0b111, 0b001, 0b010, 0b010, 0b010], // 7
+    [0b111, 0b101, 0b111, 0b101, 0b111], // 8
+    [0b111, 0b101, 0b111, 0b001, 0b111], // 9
+    [0b000, 0b010, 0b000, 0b010, 0b000], // :
+];
+
+/// Pixels per font cell (crispness only; macOS scales the image to the menu-bar
+/// height, so visual size is governed by the vertical padding in render below).
+const S: u32 = 8;
+
+fn seg_dist(px: f32, py: f32, ax: f32, ay: f32, bx: f32, by: f32) -> f32 {
+    let (dx, dy) = (bx - ax, by - ay);
+    let l2 = (dx * dx + dy * dy).max(1.0);
+    let t = (((px - ax) * dx + (py - ay) * dy) / l2).clamp(0.0, 1.0);
+    ((px - (ax + t * dx)).powi(2) + (py - (ay + t * dy)).powi(2)).sqrt()
+}
+
+/// Build a black-on-transparent (template) image of a small clock + MM:SS.
+fn render_tray_image(time: &str) -> tauri::image::Image<'static> {
+    let clock_w = 5 * S;
+    let gap = S;
+    let glyph_w = 3 * S;
+    let n = time.chars().count() as u32;
+    let digits_w = n * glyph_w + n.saturating_sub(1) * gap;
+    let content_h = 5 * S;
+    // Vertical padding so the glyphs don't fill the whole menu-bar height (macOS
+    // scales the image to the bar, so padding makes the text look smaller).
+    // Less padding => larger-looking glyphs.
+    let pad_y = 2 * S;
+    let w = clock_w + gap + digits_w;
+    let h = content_h + 2 * pad_y;
+    let mut buf = vec![0u8; (w * h * 4) as usize];
+
+    let mut put = |x: u32, y: u32, a: u8| {
+        if x < w && y < h {
+            let o = ((y * w + x) * 4) as usize;
+            buf[o + 3] = a; // RGB stays 0 (black); template uses alpha as mask
+        }
+    };
+
+    // Clock face (anti-aliased ring + hands), 2x2 supersampled.
+    let cx = clock_w as f32 / 2.0;
+    let cy = pad_y as f32 + content_h as f32 / 2.0;
+    let r = content_h as f32 * 0.40;
+    let ring = S as f32 * 0.42;
+    for y in 0..h {
+        for x in 0..clock_w {
+            let mut hit = 0u32;
+            for sy in 0..2 {
+                for sx in 0..2 {
+                    let px = x as f32 + (sx as f32 + 0.5) / 2.0;
+                    let py = y as f32 + (sy as f32 + 0.5) / 2.0;
+                    let d = ((px - cx).powi(2) + (py - cy).powi(2)).sqrt();
+                    let inside = (d - r).abs() <= ring
+                        || d <= ring
+                        || seg_dist(px, py, cx, cy, cx, cy - r * 0.85) <= ring * 0.8
+                        || seg_dist(px, py, cx, cy, cx + r * 0.55, cy) <= ring * 0.9;
+                    if inside {
+                        hit += 1;
+                    }
+                }
+            }
+            if hit > 0 {
+                put(x, y, (hit * 255 / 4) as u8);
+            }
+        }
+    }
+
+    // Digits / colon.
+    let mut gx = clock_w + gap;
+    for ch in time.chars() {
+        let idx = match ch {
+            '0'..='9' => ch as usize - '0' as usize,
+            ':' => 10,
+            _ => {
+                gx += glyph_w + gap;
+                continue;
+            }
+        };
+        for (ry, row) in FONT[idx].iter().enumerate() {
+            for col in 0..3u32 {
+                if row & (1 << (2 - col)) != 0 {
+                    for dy in 0..S {
+                        for dx in 0..S {
+                            put(gx + col * S + dx, pad_y + ry as u32 * S + dy, 255);
+                        }
+                    }
+                }
+            }
+        }
+        gx += glyph_w + gap;
+    }
+
+    drop(put); // release the &mut buf borrow before moving buf into the image
+    tauri::image::Image::new_owned(buf, w, h)
 }
 
 pub fn notify_phase_change(app: &AppHandle, change: &PhaseChange) {

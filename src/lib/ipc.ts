@@ -26,8 +26,3 @@ export const onPhaseChange = (cb: (p: PhaseChange) => void): Promise<UnlistenFn>
 
 export const onNavigate = (cb: (tab: string) => void): Promise<UnlistenFn> =>
   listen<string>("navigate", (e) => cb(e.payload));
-
-/// Show + focus the main window and route it to a tab (from the popover).
-/// Handled in Rust so it works reliably under the v2 capability model.
-export const openMain = (tab: "stats" | "settings") =>
-  invoke<void>("open_main", { tab });

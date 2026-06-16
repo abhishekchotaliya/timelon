@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capabilities for the popover and main windows.",
-  "windows": ["main", "popover"],
+  "windows": ["main"],
   "permissions": [
     "core:default",
     "core:window:allow-show",
@@ -11,6 +11,7 @@
     "core:window:allow-center",
     "core:window:allow-close",
     "core:window:allow-set-position",
+    "core:window:allow-start-dragging",
     "core:event:default",
     "core:event:allow-emit",
     "core:event:allow-listen",

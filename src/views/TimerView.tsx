@@ -2,11 +2,9 @@ import { useEffect, useRef, useState } from "react";
 
 import { Controls } from "../components/Controls";
 import { TimerRing } from "../components/TimerRing";
-import { Button } from "../components/ui/button";
 import {
   onPhaseChange,
   onTick,
-  openMain,
   setConfig,
   timerPause,
   timerReset,
@@ -14,12 +12,11 @@ import {
   timerSnapshot,
   timerStart,
 } from "../lib/ipc";
-import { toTimerConfig, useApplyTheme, useSettings } from "../lib/settings";
+import { toTimerConfig, useSettings } from "../lib/settings";
 import { play } from "../lib/sounds";
 import type { TimerSnapshot } from "../types";
 
-export function PopoverView() {
-  useApplyTheme();
+export function TimerView() {
   const { settings, loaded } = useSettings();
   const [snap, setSnap] = useState<TimerSnapshot | null>(null);
 
@@ -56,13 +53,13 @@ export function PopoverView() {
 
   if (!snap)
     return (
-      <div className="flex h-screen items-center justify-center text-muted-foreground">
+      <div className="flex h-full items-center justify-center text-muted-foreground">
         Loading…
       </div>
     );
 
   return (
-    <div className="flex h-screen flex-col items-center justify-center gap-[18px] bg-background p-4">
+    <div className="flex h-full flex-col items-center justify-center gap-6">
       <TimerRing
         phase={snap.phase}
         remainingSecs={snap.remainingSecs}
@@ -75,15 +72,6 @@ export function PopoverView() {
         onReset={() => timerReset().then(setSnap)}
         onSkip={() => timerSkip().then(setSnap)}
       />
-      <div className="flex items-center gap-1 text-[13px] text-muted-foreground">
-        <Button variant="link" size="sm" onClick={() => openMain("stats")}>
-          Stats
-        </Button>
-        <span>·</span>
-        <Button variant="link" size="sm" onClick={() => openMain("settings")}>
-          Settings
-        </Button>
-      </div>
     </div>
   );
 }

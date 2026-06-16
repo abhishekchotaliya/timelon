@@ -4,49 +4,53 @@ import { Clock } from "lucide-react";
 
 import { onNavigate } from "./lib/ipc";
 import { SettingsProvider, useApplyTheme } from "./lib/settings";
+import { TimerView } from "./views/TimerView";
 import { SettingsView } from "./views/SettingsView";
 import { StatsView } from "./views/StatsView";
 import { cn } from "./lib/utils";
 import "./styles.css";
 
-type Tab = "stats" | "settings";
+type Tab = "timer" | "stats" | "settings";
 
-function MainWindow() {
+function App() {
   useApplyTheme();
-  const [tab, setTab] = useState<Tab>("stats");
+  const [tab, setTab] = useState<Tab>("timer");
 
-  // The tray / popover can route us to a specific tab.
+  // The tray menu can route us to a specific section.
   useEffect(() => {
     const un = onNavigate((t) => {
-      if (t === "stats" || t === "settings") setTab(t);
+      if (t === "timer" || t === "stats" || t === "settings") setTab(t);
     });
     return () => {
       un.then((f) => f());
     };
   }, []);
 
-  const navClass = (active: boolean) =>
-    cn(
-      "rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors",
-      active ? "bg-primary text-primary-foreground" : "hover:bg-muted",
-    );
+  const navItem = (id: Tab, label: string) => (
+    <button
+      className={cn(
+        "rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
+        tab === id ? "bg-primary text-primary-foreground" : "hover:bg-muted",
+      )}
+      onClick={() => setTab(id)}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <div className="flex h-screen">
-      <nav className="flex w-[180px] flex-col gap-1.5 border-r border-border bg-card p-3">
+      <nav className="flex w-[170px] flex-col gap-1.5 border-r border-border bg-card p-3">
         <div className="flex items-center gap-2 px-2.5 pb-3.5 pt-1.5 text-lg font-bold text-foreground">
           <Clock className="h-5 w-5" strokeWidth={2.5} />
           Timelon
         </div>
-        <button className={navClass(tab === "stats")} onClick={() => setTab("stats")}>
-          Stats
-        </button>
-        <button className={navClass(tab === "settings")} onClick={() => setTab("settings")}>
-          Settings
-        </button>
+        {navItem("timer", "Timer")}
+        {navItem("stats", "Stats")}
+        {navItem("settings", "Settings")}
       </nav>
-      <main className="flex-1 overflow-y-auto p-7">
-        {tab === "stats" ? <StatsView /> : <SettingsView />}
+      <main className="flex-1 overflow-y-auto overscroll-contain p-7">
+        {tab === "timer" ? <TimerView /> : tab === "stats" ? <StatsView /> : <SettingsView />}
       </main>
     </div>
   );
@@ -55,7 +59,7 @@ function MainWindow() {
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <SettingsProvider>
-      <MainWindow />
+      <App />
     </SettingsProvider>
   </React.StrictMode>,
 );

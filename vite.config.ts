@@ -16,14 +16,7 @@ export default defineConfig({
     port: 1420,
     strictPort: true,
   },
-  // Multi-page build: one bundle per Tauri window.
   build: {
     target: "es2021",
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, "index.html"),
-        popover: resolve(__dirname, "popover.html"),
-      },
-    },
   },
 });

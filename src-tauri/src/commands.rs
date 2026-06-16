@@ -13,14 +13,6 @@ fn sync(app: &AppHandle, snap: &TimerSnapshot) {
     tray::update_tray_title(app, snap);
 }
 
-/// Show the main window on the given tab. Done in Rust (not via JS cross-window
-/// `show`/`emitTo`) so the popover's footer links work reliably under the v2
-/// capability model — same path the tray menu uses.
-#[tauri::command]
-pub fn open_main(app: AppHandle, tab: String) {
-    tray::show_main(&app, &tab);
-}
-
 #[tauri::command]
 pub fn timer_start(app: AppHandle, state: State<AppState>) -> TimerSnapshot {
     let snap = {

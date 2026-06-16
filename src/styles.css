@@ -88,14 +88,21 @@
   * {
     @apply border-border;
   }
+  html {
+    /* Slightly smaller overall scale (rem-based) for a tighter UI. */
+    font-size: 14px;
+  }
   html,
   body,
   #root {
     margin: 0;
     height: 100%;
+    /* Disable the native rubber-band / bounce on macOS WebKit. */
+    overscroll-behavior: none;
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    overflow: hidden;
   }
 }
 
@@ -109,13 +116,13 @@
 }
 .ring-time {
   fill: var(--foreground);
-  font-size: 38px;
+  font-size: 30px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .ring-phase {
   fill: var(--muted-foreground);
-  font-size: 14px;
+  font-size: 12px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
