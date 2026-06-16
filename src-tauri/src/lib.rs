@@ -95,6 +95,7 @@ pub fn run() {
             commands::timer_snapshot,
             commands::set_config,
             commands::stats_daily,
+            commands::open_main,
         ])
         .on_window_event(|window, event| {
             // Hide (never destroy) the popover on blur so its Audio stays alive.

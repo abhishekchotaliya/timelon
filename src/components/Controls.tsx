@@ -1,3 +1,5 @@
+import { Button } from "./ui/button";
+
 type Props = {
   running: boolean;
   onStart: () => void;
@@ -8,20 +10,16 @@ type Props = {
 
 export function Controls({ running, onStart, onPause, onReset, onSkip }: Props) {
   return (
-    <div className="controls">
-      <button className="btn-secondary" onClick={onReset} title="Reset">
+    <div className="flex items-center gap-2.5">
+      <Button variant="secondary" onClick={onReset} title="Reset">
         Reset
-      </button>
-      <button
-        className="btn-primary"
-        onClick={running ? onPause : onStart}
-        title={running ? "Pause" : "Start"}
-      >
+      </Button>
+      <Button onClick={running ? onPause : onStart} title={running ? "Pause" : "Start"}>
         {running ? "Pause" : "Start"}
-      </button>
-      <button className="btn-secondary" onClick={onSkip} title="Skip to next phase">
+      </Button>
+      <Button variant="secondary" onClick={onSkip} title="Skip to next phase">
         Skip
-      </button>
+      </Button>
     </div>
   );
 }

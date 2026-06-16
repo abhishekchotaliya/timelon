@@ -6,7 +6,7 @@ use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_notification::NotificationExt;
 use tauri_plugin_positioner::{Position, WindowExt};
 
-use crate::timer::{fmt_mmss, Phase, PhaseChange, TimerSnapshot};
+use crate::timer::{fmt_mmss, PhaseChange, TimerSnapshot};
 use crate::AppState;
 
 const TRAY_ID: &str = "main-tray";
@@ -122,14 +122,16 @@ fn toggle_popover(app: &AppHandle) {
         if w.is_visible().unwrap_or(false) {
             let _ = w.hide();
         } else {
-            let _ = w.move_window(Position::TrayBottomCenter);
+            // Show first so the window has a current monitor, otherwise the
+            // positioner panics on `current_monitor().unwrap()` (ext.rs:155).
             let _ = w.show();
+            let _ = w.move_window(Position::TrayBottomCenter);
             let _ = w.set_focus();
         }
     }
 }
 
-fn show_main(app: &AppHandle, tab: &str) {
+pub fn show_main(app: &AppHandle, tab: &str) {
     if let Some(w) = app.get_webview_window("main") {
         let _ = w.show();
         let _ = w.set_focus();
@@ -141,13 +143,10 @@ fn show_main(app: &AppHandle, tab: &str) {
 /// tooltip. We set both so the live MM:SS is visible cross-platform.
 pub fn update_tray_title(app: &AppHandle, snap: &TimerSnapshot) {
     if let Some(tray) = app.tray_by_id(TRAY_ID) {
-        let glyph = match snap.phase {
-            Phase::Focus => "🍅",
-            Phase::ShortBreak => "☕",
-            Phase::LongBreak => "🌙",
-        };
+        // Title is text only — the flat tray icon already represents the app, so
+        // an emoji glyph here would show a second (color) tomato in the menu bar.
         let time = fmt_mmss(snap.remaining_secs);
-        let _ = tray.set_title(Some(format!("{glyph} {time}")));
+        let _ = tray.set_title(Some(time.clone()));
         let _ = tray.set_tooltip(Some(format!("{} — {}", snap.phase.label(), time)));
     }
 }

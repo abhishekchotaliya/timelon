@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { FocusBarChart } from "../components/FocusBarChart";
 import { SessionsChart } from "../components/SessionsChart";
 import { StatCards } from "../components/StatCards";
+import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { onPhaseChange } from "../lib/ipc";
 import { loadStats, type Period, type StatsResult } from "../lib/stats";
 
@@ -29,18 +30,20 @@ export function StatsView() {
   }, [period]);
 
   return (
-    <div className="stats-view">
-      <div className="period-tabs">
-        {PERIODS.map((p) => (
-          <button
-            key={p}
-            className={p === period ? "period active" : "period"}
-            onClick={() => setPeriod(p)}
-          >
-            {p[0].toUpperCase() + p.slice(1)}
-          </button>
-        ))}
-      </div>
+    <div>
+      <Tabs
+        value={period}
+        onValueChange={(v) => setPeriod(v as Period)}
+        className="mb-[18px]"
+      >
+        <TabsList>
+          {PERIODS.map((p) => (
+            <TabsTrigger key={p} value={p}>
+              {p[0].toUpperCase() + p.slice(1)}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {result ? (
         <>
@@ -49,7 +52,9 @@ export function StatsView() {
           <SessionsChart data={result.buckets} />
         </>
       ) : (
-        <p className="empty">No data yet — complete a focus session to see stats.</p>
+        <p className="text-muted-foreground">
+          No data yet — complete a focus session to see stats.
+        </p>
       )}
     </div>
   );

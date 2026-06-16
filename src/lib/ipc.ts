@@ -2,8 +2,7 @@
 // src-tauri/src/timer.rs and db.rs are the source of truth for these shapes.
 
 import { invoke } from "@tauri-apps/api/core";
-import { emitTo, listen, type UnlistenFn } from "@tauri-apps/api/event";
-import { Window } from "@tauri-apps/api/window";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 
 import type { DayStat, PhaseChange, TimerConfig, TimerSnapshot } from "../types";
 
@@ -29,11 +28,6 @@ export const onNavigate = (cb: (tab: string) => void): Promise<UnlistenFn> =>
   listen<string>("navigate", (e) => cb(e.payload));
 
 /// Show + focus the main window and route it to a tab (from the popover).
-export async function openMain(tab: "stats" | "settings") {
-  const win = await Window.getByLabel("main");
-  if (win) {
-    await win.show();
-    await win.setFocus();
-  }
-  await emitTo("main", "navigate", tab);
-}
+/// Handled in Rust so it works reliably under the v2 capability model.
+export const openMain = (tab: "stats" | "settings") =>
+  invoke<void>("open_main", { tab });

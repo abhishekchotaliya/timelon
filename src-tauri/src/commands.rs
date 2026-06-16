@@ -1,7 +1,7 @@
 //! Tauri commands invoked from the frontend. Each mutates the engine under a
 //! short-lived lock (never held across `.await`), then syncs the UI + tray.
 
-use tauri::{AppHandle, Emitter, Manager, State};
+use tauri::{AppHandle, Emitter, State};
 
 use crate::db::{self, DayStat};
 use crate::timer::{TimerConfig, TimerSnapshot};
@@ -11,6 +11,14 @@ use crate::{tray, AppState};
 fn sync(app: &AppHandle, snap: &TimerSnapshot) {
     let _ = app.emit("tick", snap);
     tray::update_tray_title(app, snap);
+}
+
+/// Show the main window on the given tab. Done in Rust (not via JS cross-window
+/// `show`/`emitTo`) so the popover's footer links work reliably under the v2
+/// capability model — same path the tray menu uses.
+#[tauri::command]
+pub fn open_main(app: AppHandle, tab: String) {
+    tray::show_main(&app, &tab);
 }
 
 #[tauri::command]

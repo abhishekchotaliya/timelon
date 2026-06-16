@@ -18,7 +18,9 @@ export function applyTheme(mode: ThemeMode, accent: string) {
     (mode === "system" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches);
   root.setAttribute("data-theme", dark ? "dark" : "light");
-  root.style.setProperty("--accent", ACCENTS[accent] ?? ACCENTS[DEFAULT_ACCENT]);
+  // --brand feeds --primary / --ring (see styles.css); kept separate from
+  // shadcn's own --accent hover token.
+  root.style.setProperty("--brand", ACCENTS[accent] ?? ACCENTS[DEFAULT_ACCENT]);
 }
 
 export function watchSystemTheme(cb: () => void): () => void {

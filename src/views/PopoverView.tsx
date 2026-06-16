@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Controls } from "../components/Controls";
 import { TimerRing } from "../components/TimerRing";
+import { Button } from "../components/ui/button";
 import {
   onPhaseChange,
   onTick,
@@ -53,10 +54,15 @@ export function PopoverView() {
     settings.autoStartFocus,
   ]);
 
-  if (!snap) return <div className="popover loading">Loading…</div>;
+  if (!snap)
+    return (
+      <div className="flex h-screen items-center justify-center text-muted-foreground">
+        Loading…
+      </div>
+    );
 
   return (
-    <div className="popover">
+    <div className="flex h-screen flex-col items-center justify-center gap-[18px] bg-background p-4">
       <TimerRing
         phase={snap.phase}
         remainingSecs={snap.remainingSecs}
@@ -69,14 +75,14 @@ export function PopoverView() {
         onReset={() => timerReset().then(setSnap)}
         onSkip={() => timerSkip().then(setSnap)}
       />
-      <div className="popover-footer">
-        <button className="link" onClick={() => openMain("stats")}>
+      <div className="flex items-center gap-1 text-[13px] text-muted-foreground">
+        <Button variant="link" size="sm" onClick={() => openMain("stats")}>
           Stats
-        </button>
-        <span className="dot">·</span>
-        <button className="link" onClick={() => openMain("settings")}>
+        </Button>
+        <span>·</span>
+        <Button variant="link" size="sm" onClick={() => openMain("settings")}>
           Settings
-        </button>
+        </Button>
       </div>
     </div>
   );

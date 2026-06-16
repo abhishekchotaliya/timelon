@@ -3,6 +3,19 @@ import { disable, enable } from "@tauri-apps/plugin-autostart";
 import { useSettings } from "../lib/settings";
 import { ACCENTS } from "../lib/theme";
 import { play, SOUNDS } from "../lib/sounds";
+import { cn } from "../lib/utils";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Label } from "../components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { Slider } from "../components/ui/slider";
+import { Switch } from "../components/ui/switch";
 
 function MinutesField({
   label,
@@ -14,8 +27,8 @@ function MinutesField({
   onChange: (secs: number) => void;
 }) {
   return (
-    <label className="field">
-      <span>{label}</span>
+    <div className="flex items-center gap-3">
+      <Label className="flex-1">{label}</Label>
       <input
         type="number"
         min={1}
@@ -25,9 +38,27 @@ function MinutesField({
           const mins = Math.max(1, Math.min(180, Number(e.target.value) || 1));
           onChange(mins * 60);
         }}
+        className="h-9 w-[70px] rounded-md border border-input bg-muted px-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
       />
-      <span className="unit">min</span>
-    </label>
+      <span className="min-w-9 text-[13px] text-muted-foreground">min</span>
+    </div>
+  );
+}
+
+function ToggleRow({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (on: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <Label>{label}</Label>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
   );
 }
 
@@ -45,122 +76,151 @@ export function SettingsView() {
   };
 
   return (
-    <div className="settings-view">
-      <section>
-        <h2>Durations</h2>
-        <MinutesField label="Focus" secs={settings.focusSecs} onChange={(s) => update({ focusSecs: s })} />
-        <MinutesField
-          label="Short break"
-          secs={settings.shortBreakSecs}
-          onChange={(s) => update({ shortBreakSecs: s })}
-        />
-        <MinutesField
-          label="Long break"
-          secs={settings.longBreakSecs}
-          onChange={(s) => update({ longBreakSecs: s })}
-        />
-        <label className="field">
-          <span>Sessions per long break</span>
-          <input
-            type="number"
-            min={1}
-            max={12}
-            value={settings.sessionsPerLongBreak}
-            onChange={(e) =>
-              update({ sessionsPerLongBreak: Math.max(1, Number(e.target.value) || 1) })
-            }
+    <div className="max-w-[560px] space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Durations</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <MinutesField
+            label="Focus"
+            secs={settings.focusSecs}
+            onChange={(s) => update({ focusSecs: s })}
           />
-        </label>
-      </section>
-
-      <section>
-        <h2>Automation</h2>
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={settings.autoStartBreaks}
-            onChange={(e) => update({ autoStartBreaks: e.target.checked })}
+          <MinutesField
+            label="Short break"
+            secs={settings.shortBreakSecs}
+            onChange={(s) => update({ shortBreakSecs: s })}
           />
-          <span>Auto-start breaks</span>
-        </label>
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={settings.autoStartFocus}
-            onChange={(e) => update({ autoStartFocus: e.target.checked })}
+          <MinutesField
+            label="Long break"
+            secs={settings.longBreakSecs}
+            onChange={(s) => update({ longBreakSecs: s })}
           />
-          <span>Auto-start focus</span>
-        </label>
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={settings.launchAtLogin}
-            onChange={(e) => setLaunchAtLogin(e.target.checked)}
-          />
-          <span>Launch at login</span>
-        </label>
-      </section>
-
-      <section>
-        <h2>Appearance</h2>
-        <label className="field">
-          <span>Theme</span>
-          <select
-            value={settings.theme}
-            onChange={(e) => update({ theme: e.target.value as typeof settings.theme })}
-          >
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </label>
-        <div className="field">
-          <span>Accent</span>
-          <div className="accents">
-            {Object.entries(ACCENTS).map(([key, color]) => (
-              <button
-                key={key}
-                className={key === settings.accent ? "swatch active" : "swatch"}
-                style={{ background: color }}
-                title={key}
-                onClick={() => update({ accent: key })}
-              />
-            ))}
+          <div className="flex items-center gap-3">
+            <Label className="flex-1">Sessions per long break</Label>
+            <input
+              type="number"
+              min={1}
+              max={12}
+              value={settings.sessionsPerLongBreak}
+              onChange={(e) =>
+                update({ sessionsPerLongBreak: Math.max(1, Number(e.target.value) || 1) })
+              }
+              className="h-9 w-[70px] rounded-md border border-input bg-muted px-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <span className="min-w-9" />
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      <section>
-        <h2>Sound</h2>
-        <label className="field">
-          <span>Alert</span>
-          <select
-            value={settings.soundId}
-            onChange={(e) => update({ soundId: e.target.value })}
-          >
-            {SOUNDS.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-          <button className="btn-secondary" onClick={() => play(settings.soundId, settings.volume)}>
-            Preview
-          </button>
-        </label>
-        <label className="field">
-          <span>Volume</span>
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.05}
-            value={settings.volume}
-            onChange={(e) => update({ volume: Number(e.target.value) })}
+      <Card>
+        <CardHeader>
+          <CardTitle>Automation</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3.5">
+          <ToggleRow
+            label="Auto-start breaks"
+            checked={settings.autoStartBreaks}
+            onChange={(on) => update({ autoStartBreaks: on })}
           />
-          <span className="unit">{Math.round(settings.volume * 100)}%</span>
-        </label>
-      </section>
+          <ToggleRow
+            label="Auto-start focus"
+            checked={settings.autoStartFocus}
+            onChange={(on) => update({ autoStartFocus: on })}
+          />
+          <ToggleRow
+            label="Launch at login"
+            checked={settings.launchAtLogin}
+            onChange={setLaunchAtLogin}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3.5">
+          <div className="flex items-center gap-3">
+            <Label className="flex-1">Theme</Label>
+            <Select
+              value={settings.theme}
+              onValueChange={(v) => update({ theme: v as typeof settings.theme })}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="system">System</SelectItem>
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-3">
+            <Label className="flex-1">Accent</Label>
+            <div className="flex gap-2">
+              {Object.entries(ACCENTS).map(([key, color]) => (
+                <button
+                  key={key}
+                  className={cn(
+                    "h-6 w-6 rounded-full border-2 transition-colors",
+                    key === settings.accent ? "border-foreground" : "border-transparent",
+                  )}
+                  style={{ background: color }}
+                  title={key}
+                  onClick={() => update({ accent: key })}
+                />
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Sound</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3.5">
+          <div className="flex items-center gap-3">
+            <Label className="flex-1">Alert</Label>
+            <Select value={settings.soundId} onValueChange={(v) => update({ soundId: v })}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SOUNDS.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => play(settings.soundId, settings.volume)}
+            >
+              Preview
+            </Button>
+          </div>
+          <div className="flex items-center gap-3">
+            <Label className="flex-1">Volume</Label>
+            <Slider
+              className="w-[160px]"
+              min={0}
+              max={1}
+              step={0.05}
+              value={[settings.volume]}
+              onValueChange={([v]) => update({ volume: v })}
+            />
+            <span className="min-w-9 text-[13px] text-muted-foreground">
+              {Math.round(settings.volume * 100)}%
+            </span>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
