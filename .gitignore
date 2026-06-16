@@ -6,6 +6,10 @@ dist-ssr/
 
 # Rust / Tauri
 src-tauri/target/
+src-tauri/gen/
+
+# Generated icon source (platform icons in src-tauri/icons are committed)
+scripts/icon-src.png
 
 # Logs
 *.log
