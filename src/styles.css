@@ -9,7 +9,10 @@
    --primary / --ring through it so the accent picker stays dynamic. shadcn's own
    --accent token is kept for subtle hover surfaces (do not overwrite it). */
 :root {
-  --brand: #e34f32;
+  color-scheme: light;
+  /* Monochrome: brand is near-black in light, near-white in dark (set below).
+     Feeds --primary / --ring for an all black-and-white look. */
+  --brand: #1c1c1e;
 
   --background: #f5f5f7;
   --foreground: #1c1c1e;
@@ -33,6 +36,9 @@
 }
 
 :root[data-theme="dark"] {
+  color-scheme: dark;
+  --brand: #f5f5f7;
+  --primary-foreground: #1c1c1e;
   --background: #1c1c1e;
   --foreground: #f5f5f7;
   --card: #2c2c2e;

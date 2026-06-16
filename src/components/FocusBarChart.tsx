@@ -24,6 +24,7 @@ export function FocusBarChart({ data }: { data: Bucket[] }) {
             <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={12} />
             <YAxis stroke="var(--muted-foreground)" fontSize={12} allowDecimals={false} />
             <Tooltip
+              cursor={{ fill: "var(--muted-foreground)", fillOpacity: 0.12 }}
               formatter={(v: number) => [`${v.toFixed(0)} min`, "Focus"]}
               contentStyle={{
                 background: "var(--card)",

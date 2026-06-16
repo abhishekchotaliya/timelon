@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
+import { Clock } from "lucide-react";
 
 import { onNavigate } from "./lib/ipc";
 import { SettingsProvider, useApplyTheme } from "./lib/settings";
@@ -33,7 +34,10 @@ function MainWindow() {
   return (
     <div className="flex h-screen">
       <nav className="flex w-[180px] flex-col gap-1.5 border-r border-border bg-card p-3">
-        <div className="px-2.5 pb-3.5 pt-1.5 text-lg font-bold text-primary">Timelon</div>
+        <div className="flex items-center gap-2 px-2.5 pb-3.5 pt-1.5 text-lg font-bold text-foreground">
+          <Clock className="h-5 w-5" strokeWidth={2.5} />
+          Timelon
+        </div>
         <button className={navClass(tab === "stats")} onClick={() => setTab("stats")}>
           Stats
         </button>

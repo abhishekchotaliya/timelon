@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { load, type Store } from "@tauri-apps/plugin-store";
+import { emit, listen } from "@tauri-apps/api/event";
 
 import type { TimerConfig } from "../types";
 import { applyTheme, watchSystemTheme, type ThemeMode } from "./theme";
@@ -53,6 +54,9 @@ export function toTimerConfig(s: Settings): TimerConfig {
 }
 
 const STORE_KEY = "settings";
+// Broadcast so every window (popover + main) stays in sync, since each holds
+// its own React copy of the settings.
+const SETTINGS_EVENT = "settings-changed";
 
 let storePromise: Promise<Store> | null = null;
 function getStore() {
@@ -88,6 +92,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Stay in sync with changes made in other windows.
+  useEffect(() => {
+    const un = listen<Settings>(SETTINGS_EVENT, (e) => setSettings(e.payload));
+    return () => {
+      un.then((f) => f());
+    };
+  }, []);
+
   const update = (patch: Partial<Settings>) => {
     setSettings((prev) => {
       const next = { ...prev, ...patch };
@@ -95,6 +107,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         const store = await getStore();
         await store.set(STORE_KEY, next);
         await store.save();
+        // Notify the other windows (and ourselves; harmless) of the new state.
+        await emit(SETTINGS_EVENT, next);
       })();
       return next;
     });
@@ -117,9 +131,9 @@ export function useSettings(): Ctx {
 export function useApplyTheme() {
   const { settings } = useSettings();
   useEffect(() => {
-    applyTheme(settings.theme, settings.accent);
+    applyTheme(settings.theme);
     if (settings.theme === "system") {
-      return watchSystemTheme(() => applyTheme(settings.theme, settings.accent));
+      return watchSystemTheme(() => applyTheme(settings.theme));
     }
-  }, [settings.theme, settings.accent]);
+  }, [settings.theme]);
 }

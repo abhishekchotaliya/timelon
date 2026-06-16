@@ -1,9 +1,7 @@
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
 import { useSettings } from "../lib/settings";
-import { ACCENTS } from "../lib/theme";
 import { play, SOUNDS } from "../lib/sounds";
-import { cn } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Label } from "../components/ui/label";
@@ -157,23 +155,6 @@ export function SettingsView() {
                 <SelectItem value="dark">Dark</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="flex items-center gap-3">
-            <Label className="flex-1">Accent</Label>
-            <div className="flex gap-2">
-              {Object.entries(ACCENTS).map(([key, color]) => (
-                <button
-                  key={key}
-                  className={cn(
-                    "h-6 w-6 rounded-full border-2 transition-colors",
-                    key === settings.accent ? "border-foreground" : "border-transparent",
-                  )}
-                  style={{ background: color }}
-                  title={key}
-                  onClick={() => update({ accent: key })}
-                />
-              ))}
-            </div>
           </div>
         </CardContent>
       </Card>

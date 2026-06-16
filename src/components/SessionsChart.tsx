@@ -30,6 +30,7 @@ export function SessionsChart({ data }: { data: Bucket[] }) {
             <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={12} />
             <YAxis stroke="var(--muted-foreground)" fontSize={12} allowDecimals={false} />
             <Tooltip
+              cursor={{ stroke: "var(--muted-foreground)", strokeOpacity: 0.4 }}
               formatter={(v: number) => [String(v), "Sessions"]}
               contentStyle={{
                 background: "var(--card)",

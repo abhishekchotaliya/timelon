@@ -15,11 +15,10 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["tray-icon"] }
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
 tauri-plugin-store = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-autostart = "2"
-tauri-plugin-positioner = { version = "2", features = ["tray-icon"] }
 tokio = { version = "1", features = ["time", "sync", "rt"] }
 sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "sqlite", "macros"] }
 chrono = { version = "0.4", features = ["serde"] }

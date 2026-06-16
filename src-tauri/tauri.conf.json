@@ -28,10 +28,10 @@
         "label": "main",
         "url": "index.html",
         "title": "Timelon",
-        "width": 900,
-        "height": 640,
-        "minWidth": 720,
-        "minHeight": 520,
+        "width": 800,
+        "height": 600,
+        "resizable": false,
+        "maximizable": false,
         "visible": false
       }
     ],

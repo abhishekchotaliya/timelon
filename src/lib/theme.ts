@@ -1,26 +1,16 @@
-// CSS-variable theming. `applyTheme` toggles the light/dark data-attribute and
-// sets the accent custom property; "system" follows prefers-color-scheme.
+// CSS-variable theming. `applyTheme` toggles the light/dark data-attribute;
+// "system" follows prefers-color-scheme. Colors (incl. the monochrome --brand)
+// live entirely in styles.css per theme.
 
 export type ThemeMode = "light" | "dark" | "system";
 
-export const ACCENTS: Record<string, string> = {
-  tomato: "#e34f32",
-  indigo: "#5b6cf0",
-  forest: "#2f9e60",
-};
-
-export const DEFAULT_ACCENT = "tomato";
-
-export function applyTheme(mode: ThemeMode, accent: string) {
+export function applyTheme(mode: ThemeMode) {
   const root = document.documentElement;
   const dark =
     mode === "dark" ||
     (mode === "system" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches);
   root.setAttribute("data-theme", dark ? "dark" : "light");
-  // --brand feeds --primary / --ring (see styles.css); kept separate from
-  // shadcn's own --accent hover token.
-  root.style.setProperty("--brand", ACCENTS[accent] ?? ACCENTS[DEFAULT_ACCENT]);
 }
 
 export function watchSystemTheme(cb: () => void): () => void {

@@ -60,7 +60,6 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             None,
@@ -97,13 +96,23 @@ pub fn run() {
             commands::stats_daily,
             commands::open_main,
         ])
-        .on_window_event(|window, event| {
+        .on_window_event(|window, event| match window.label() {
             // Hide (never destroy) the popover on blur so its Audio stays alive.
-            if window.label() == "popover" {
+            "popover" => {
                 if let tauri::WindowEvent::Focused(false) = event {
                     let _ = window.hide();
                 }
             }
+            // Hide the main window on close instead of destroying it, so the
+            // popover/tray can re-show it later (otherwise get_webview_window
+            // returns None and "Open Stats/Settings" silently no-ops).
+            "main" => {
+                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+            }
+            _ => {}
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
