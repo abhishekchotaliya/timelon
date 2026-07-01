@@ -31,6 +31,8 @@ CREATE INDEX IF NOT EXISTS idx_sessions_phase ON sessions(phase);
 pub struct DayStat {
     pub day: String,
     pub focus_min: f64,
+    pub break_min: f64,
+    pub long_break_min: f64,
     pub sessions: i64,
     pub breaks: i64,
 }
@@ -82,6 +84,8 @@ pub async fn query_daily(
     sqlx::query_as::<_, DayStat>(
         "SELECT day,
                 COALESCE(SUM(CASE WHEN phase='focus' THEN actual_secs ELSE 0 END), 0) / 60.0 AS focus_min,
+                COALESCE(SUM(CASE WHEN phase='short_break' THEN actual_secs ELSE 0 END), 0) / 60.0 AS break_min,
+                COALESCE(SUM(CASE WHEN phase='long_break' THEN actual_secs ELSE 0 END), 0) / 60.0 AS long_break_min,
                 COALESCE(SUM(CASE WHEN phase='focus' AND completed=1 THEN 1 ELSE 0 END), 0) AS sessions,
                 COALESCE(SUM(CASE WHEN phase LIKE '%break%' THEN 1 ELSE 0 END), 0) AS breaks
          FROM sessions

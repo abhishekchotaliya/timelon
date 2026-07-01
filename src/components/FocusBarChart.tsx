@@ -2,6 +2,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -12,14 +13,21 @@ import type { Bucket } from "../lib/stats";
 import { ChartTooltip } from "./ChartTooltip";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
+// Monochrome shades matching the all-time pie.
+const COLORS = {
+  focus: "var(--brand)",
+  break: "color-mix(in srgb, var(--brand) 55%, var(--muted-foreground))",
+  longBreak: "color-mix(in srgb, var(--brand) 22%, var(--muted-foreground))",
+};
+
 export function FocusBarChart({ data }: { data: Bucket[] }) {
   return (
     <Card className="mb-[18px]">
       <CardHeader>
-        <CardTitle>Focus minutes</CardTitle>
+        <CardTitle>Time per day</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={240}>
+        <ResponsiveContainer width="100%" height={260}>
           <BarChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
             <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={12} />
@@ -28,7 +36,19 @@ export function FocusBarChart({ data }: { data: Bucket[] }) {
               cursor={{ fill: "var(--muted-foreground)", fillOpacity: 0.1 }}
               content={<ChartTooltip format={(v) => `${Math.round(v)} min`} />}
             />
-            <Bar dataKey="focusMin" name="Focus" fill="var(--brand)" radius={[6, 6, 0, 0]} />
+            <Legend
+              iconType="circle"
+              wrapperStyle={{ fontSize: 12, color: "var(--muted-foreground)" }}
+            />
+            <Bar dataKey="focusMin" stackId="t" name="Focus" fill={COLORS.focus} />
+            <Bar dataKey="breakMin" stackId="t" name="Break" fill={COLORS.break} />
+            <Bar
+              dataKey="longBreakMin"
+              stackId="t"
+              name="Long break"
+              fill={COLORS.longBreak}
+              radius={[6, 6, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

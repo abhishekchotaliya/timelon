@@ -16,7 +16,7 @@ export function SessionsChart({ data }: { data: Bucket[] }) {
   return (
     <Card className="mb-[18px]">
       <CardHeader>
-        <CardTitle>Sessions completed</CardTitle>
+        <CardTitle>Focus Sessions</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={240}>

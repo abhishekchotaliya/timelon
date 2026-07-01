@@ -34,6 +34,8 @@ export type TimerConfig = {
 export type DayStat = {
   day: string; // YYYY-MM-DD (local)
   focusMin: number;
+  breakMin: number;
+  longBreakMin: number;
   sessions: number;
   breaks: number;
 };

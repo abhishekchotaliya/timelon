@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { AllTimePie } from "../components/AllTimePie";
 import { FocusBarChart } from "../components/FocusBarChart";
 import { SessionsChart } from "../components/SessionsChart";
 import { StatCards } from "../components/StatCards";
@@ -48,6 +49,7 @@ export function StatsView() {
       {result ? (
         <>
           <StatCards totals={result.totals} />
+          <AllTimePie data={result.pie} />
           <FocusBarChart data={result.buckets} />
           <SessionsChart data={result.buckets} />
         </>

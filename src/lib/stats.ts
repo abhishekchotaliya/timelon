@@ -10,16 +10,24 @@ export type Bucket = {
   key: string;
   label: string;
   focusMin: number;
+  breakMin: number;
+  longBreakMin: number;
   sessions: number;
   breaks: number;
 };
 
 export type Totals = {
   focusHours: number;
+  focusMin: number;
+  breakMin: number;
+  longBreakMin: number;
   sessions: number;
   breaks: number;
   streak: number;
 };
+
+// All-time minutes per phase, for the pie chart.
+export type PieData = { focus: number; shortBreak: number; longBreak: number };
 
 export function toLocalDay(d: Date): string {
   const y = d.getFullYear();
@@ -58,11 +66,13 @@ export function rangeForPeriod(period: Period, now = new Date()): { start: strin
 }
 
 function emptyBucket(key: string, label: string): Bucket {
-  return { key, label, focusMin: 0, sessions: 0, breaks: 0 };
+  return { key, label, focusMin: 0, breakMin: 0, longBreakMin: 0, sessions: 0, breaks: 0 };
 }
 
 function add(b: Bucket, row: DayStat) {
   b.focusMin += row.focusMin;
+  b.breakMin += row.breakMin;
+  b.longBreakMin += row.longBreakMin;
   b.sessions += row.sessions;
   b.breaks += row.breaks;
 }
@@ -134,7 +144,7 @@ function computeStreak(rows: DayStat[]): number {
   return streak;
 }
 
-export type StatsResult = { buckets: Bucket[]; totals: Totals };
+export type StatsResult = { buckets: Bucket[]; totals: Totals; pie: PieData };
 
 export async function loadStats(period: Period): Promise<StatsResult> {
   const { start, end } = rangeForPeriod(period);
@@ -142,16 +152,30 @@ export async function loadStats(period: Period): Promise<StatsResult> {
   const buckets = bucketsFor(period, rows, start, end);
 
   const focusMin = rows.reduce((sum, r) => sum + r.focusMin, 0);
+  const breakMin = rows.reduce((sum, r) => sum + r.breakMin, 0);
+  const longBreakMin = rows.reduce((sum, r) => sum + r.longBreakMin, 0);
   const sessions = rows.reduce((sum, r) => sum + r.sessions, 0);
   const breaks = rows.reduce((sum, r) => sum + r.breaks, 0);
+
+  // All-time totals for the pie chart (independent of the selected period).
+  const allRows = await statsDaily("1970-01-01", end);
+  const pie: PieData = {
+    focus: allRows.reduce((s, r) => s + r.focusMin, 0),
+    shortBreak: allRows.reduce((s, r) => s + r.breakMin, 0),
+    longBreak: allRows.reduce((s, r) => s + r.longBreakMin, 0),
+  };
 
   return {
     buckets,
     totals: {
       focusHours: focusMin / 60,
+      focusMin,
+      breakMin,
+      longBreakMin,
       sessions,
       breaks,
       streak: computeStreak(rows),
     },
+    pie,
   };
 }
