@@ -9,6 +9,7 @@ import {
 } from "recharts";
 
 import type { Bucket } from "../lib/stats";
+import { ChartTooltip } from "./ChartTooltip";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 export function SessionsChart({ data }: { data: Bucket[] }) {
@@ -31,17 +32,12 @@ export function SessionsChart({ data }: { data: Bucket[] }) {
             <YAxis stroke="var(--muted-foreground)" fontSize={12} allowDecimals={false} />
             <Tooltip
               cursor={{ stroke: "var(--muted-foreground)", strokeOpacity: 0.4 }}
-              formatter={(v: number) => [String(v), "Sessions"]}
-              contentStyle={{
-                background: "var(--card)",
-                border: "1px solid var(--border)",
-                borderRadius: 8,
-                color: "var(--foreground)",
-              }}
+              content={<ChartTooltip format={(v) => `${v}`} />}
             />
             <Area
               type="monotone"
               dataKey="sessions"
+              name="Sessions"
               stroke="var(--brand)"
               strokeWidth={2}
               fill="url(#sessFill)"

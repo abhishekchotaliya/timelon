@@ -110,6 +110,7 @@ pub fn run() {
             commands::timer_snapshot,
             commands::set_config,
             commands::stats_daily,
+            commands::set_window_theme,
         ])
         .on_window_event(|window, event| {
             // Hide windows on close instead of destroying them, so the tray /

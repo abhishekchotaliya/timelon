@@ -14,8 +14,8 @@ type Props = {
 };
 
 export function TimerRing({ phase, remainingSecs, plannedSecs }: Props) {
-  const size = 220;
-  const stroke = 14;
+  const size = 240;
+  const stroke = 12;
   const radius = (size - stroke) / 2;
   const circ = 2 * Math.PI * radius;
   const progress = plannedSecs > 0 ? (plannedSecs - remainingSecs) / plannedSecs : 0;
@@ -23,6 +23,12 @@ export function TimerRing({ phase, remainingSecs, plannedSecs }: Props) {
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="timer-ring">
+      <defs>
+        <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="var(--brand)" stopOpacity={1} />
+          <stop offset="100%" stopColor="var(--brand)" stopOpacity={0.55} />
+        </linearGradient>
+      </defs>
       <circle
         cx={size / 2}
         cy={size / 2}

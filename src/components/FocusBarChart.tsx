@@ -9,6 +9,7 @@ import {
 } from "recharts";
 
 import type { Bucket } from "../lib/stats";
+import { ChartTooltip } from "./ChartTooltip";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 export function FocusBarChart({ data }: { data: Bucket[] }) {
@@ -24,16 +25,10 @@ export function FocusBarChart({ data }: { data: Bucket[] }) {
             <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={12} />
             <YAxis stroke="var(--muted-foreground)" fontSize={12} allowDecimals={false} />
             <Tooltip
-              cursor={{ fill: "var(--muted-foreground)", fillOpacity: 0.12 }}
-              formatter={(v: number) => [`${v.toFixed(0)} min`, "Focus"]}
-              contentStyle={{
-                background: "var(--card)",
-                border: "1px solid var(--border)",
-                borderRadius: 8,
-                color: "var(--foreground)",
-              }}
+              cursor={{ fill: "var(--muted-foreground)", fillOpacity: 0.1 }}
+              content={<ChartTooltip format={(v) => `${Math.round(v)} min`} />}
             />
-            <Bar dataKey="focusMin" fill="var(--brand)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="focusMin" name="Focus" fill="var(--brand)" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

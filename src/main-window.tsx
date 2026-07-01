@@ -33,8 +33,10 @@ function App() {
   const navItem = (id: Tab, label: string) => (
     <button
       className={cn(
-        "rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
-        tab === id ? "bg-primary text-primary-foreground" : "hover:bg-muted",
+        "rounded-xl px-3 py-2 text-left text-sm font-medium transition-all duration-200",
+        tab === id
+          ? "bg-primary text-primary-foreground shadow-md shadow-black/15"
+          : "text-foreground/80 hover:bg-accent hover:text-foreground",
       )}
       onClick={() => setTab(id)}
     >
@@ -44,8 +46,8 @@ function App() {
 
   return (
     <div className="flex h-screen">
-      <nav className="flex w-[170px] flex-col gap-1.5 border-r border-border bg-card p-3">
-        <div className="flex items-center gap-2 px-2.5 pb-3.5 pt-1.5 text-lg font-bold text-foreground">
+      <nav className="flex w-[168px] flex-col gap-1 border-r border-border bg-card p-3 backdrop-blur-2xl">
+        <div className="flex items-center gap-2 px-2.5 pb-4 pt-1.5 text-lg font-bold tracking-tight text-foreground">
           <Clock className="h-5 w-5" strokeWidth={2.5} />
           Timelon
         </div>

@@ -18,6 +18,10 @@ export const setConfig = (cfg: TimerConfig) =>
 export const statsDaily = (startDay: string, endDay: string) =>
   invoke<DayStat[]>("stats_daily", { startDay, endDay });
 
+/// Match the native window appearance (macOS vibrancy) to the app theme.
+export const setWindowTheme = (theme: "light" | "dark" | "system") =>
+  invoke<void>("set_window_theme", { theme }).catch(() => {});
+
 export const onTick = (cb: (s: TimerSnapshot) => void): Promise<UnlistenFn> =>
   listen<TimerSnapshot>("tick", (e) => cb(e.payload));
 

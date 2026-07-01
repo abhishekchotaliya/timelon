@@ -10,18 +10,24 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "macOSPrivateApi": true,
     "withGlobalTauri": false,
     "windows": [
       {
         "label": "main",
         "url": "index.html",
         "title": "Timelon",
-        "width": 760,
-        "height": 560,
+        "width": 780,
+        "height": 580,
         "minWidth": 680,
         "minHeight": 480,
         "center": true,
-        "visible": true
+        "visible": true,
+        "transparent": true,
+        "windowEffects": {
+          "effects": ["sidebar"],
+          "state": "active"
+        }
       }
     ],
     "security": {

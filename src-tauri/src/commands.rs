@@ -1,11 +1,24 @@
 //! Tauri commands invoked from the frontend. Each mutates the engine under a
 //! short-lived lock (never held across `.await`), then syncs the UI + tray.
 
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, State, Theme, WebviewWindow};
 
 use crate::db::{self, DayStat};
 use crate::timer::{TimerConfig, TimerSnapshot};
 use crate::{tray, AppState};
+
+/// Force the native window appearance to match the app theme so the macOS
+/// vibrancy material behind the UI flips light/dark with it. "system" (None)
+/// lets it follow the OS.
+#[tauri::command]
+pub fn set_window_theme(window: WebviewWindow, theme: String) {
+    let t = match theme.as_str() {
+        "light" => Some(Theme::Light),
+        "dark" => Some(Theme::Dark),
+        _ => None,
+    };
+    let _ = window.set_theme(t);
+}
 
 /// Broadcast a fresh snapshot to all windows and refresh the tray.
 fn sync(app: &AppHandle, snap: &TimerSnapshot) {

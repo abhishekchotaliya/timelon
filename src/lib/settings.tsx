@@ -12,6 +12,7 @@ import { load, type Store } from "@tauri-apps/plugin-store";
 import { emit, listen } from "@tauri-apps/api/event";
 
 import type { TimerConfig } from "../types";
+import { setWindowTheme } from "./ipc";
 import { applyTheme, watchSystemTheme, type ThemeMode } from "./theme";
 
 export type Settings = {
@@ -130,6 +131,9 @@ export function useApplyTheme() {
   const { settings } = useSettings();
   useEffect(() => {
     applyTheme(settings.theme);
+    // Keep the native window (vibrancy) appearance in sync so the blur material
+    // matches the theme — otherwise light-theme text sits on a dark blur.
+    setWindowTheme(settings.theme);
     if (settings.theme === "system") {
       return watchSystemTheme(() => applyTheme(settings.theme));
     }
