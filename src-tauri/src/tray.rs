@@ -1,4 +1,4 @@
-//! Tray icon, menu, popover toggling, and OS notifications.
+//! Tray icon, menu, window toggling, and OS notifications.
 
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};

@@ -23,8 +23,24 @@ pub struct AppState {
 fn spawn_tick_loop(app: tauri::AppHandle) {
     tauri::async_runtime::spawn(async move {
         let mut interval = tokio::time::interval(Duration::from_secs(1));
+        // Don't replay missed ticks as a burst (e.g. after the Mac sleeps, the
+        // monotonic clock jumps and a default interval would fire every missed
+        // second at once — firing dozens of phase-changes/notifications).
+        interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+        let mut last = std::time::Instant::now();
+
         loop {
             interval.tick().await;
+
+            // A large gap means the process was suspended (sleep) or otherwise
+            // stalled. Treat it as a pause: don't count the gap or finish phases,
+            // just resume cleanly on the next tick.
+            let now = std::time::Instant::now();
+            let gap = now.duration_since(last);
+            last = now;
+            if gap > Duration::from_secs(2) {
+                continue;
+            }
 
             let (snapshot, finished) = {
                 let state = app.state::<AppState>();

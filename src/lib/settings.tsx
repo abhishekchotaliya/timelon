@@ -23,7 +23,6 @@ export type Settings = {
   autoStartFocus: boolean;
   launchAtLogin: boolean;
   theme: ThemeMode;
-  accent: string;
   soundId: string;
   volume: number;
 };
@@ -37,7 +36,6 @@ export const DEFAULT_SETTINGS: Settings = {
   autoStartFocus: false,
   launchAtLogin: false,
   theme: "system",
-  accent: "tomato",
   soundId: "chime",
   volume: 0.7,
 };
@@ -127,7 +125,7 @@ export function useSettings(): Ctx {
   return ctx;
 }
 
-/// Apply the current theme + accent to the document, following system changes.
+/// Apply the current theme to the document, following system changes.
 export function useApplyTheme() {
   const { settings } = useSettings();
   useEffect(() => {

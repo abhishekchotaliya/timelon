@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { Clock } from "lucide-react";
 
@@ -6,9 +6,13 @@ import { onNavigate } from "./lib/ipc";
 import { SettingsProvider, useApplyTheme } from "./lib/settings";
 import { TimerView } from "./views/TimerView";
 import { SettingsView } from "./views/SettingsView";
-import { StatsView } from "./views/StatsView";
 import { cn } from "./lib/utils";
 import "./styles.css";
+
+// Stats pulls in Recharts (the bulk of the bundle); load it only when opened.
+const StatsView = lazy(() =>
+  import("./views/StatsView").then((m) => ({ default: m.StatsView })),
+);
 
 type Tab = "timer" | "stats" | "settings";
 
@@ -50,7 +54,9 @@ function App() {
         {navItem("settings", "Settings")}
       </nav>
       <main className="flex-1 overflow-y-auto overscroll-contain p-7">
-        {tab === "timer" ? <TimerView /> : tab === "stats" ? <StatsView /> : <SettingsView />}
+        <Suspense fallback={<div className="text-muted-foreground">Loading…</div>}>
+          {tab === "timer" ? <TimerView /> : tab === "stats" ? <StatsView /> : <SettingsView />}
+        </Suspense>
       </main>
     </div>
   );

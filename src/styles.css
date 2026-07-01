@@ -5,9 +5,9 @@
    (light / dark / system), not Tailwind's default prefers-color-scheme. */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* shadcn design tokens. --brand is the runtime accent set by theme.ts; we route
-   --primary / --ring through it so the accent picker stays dynamic. shadcn's own
-   --accent token is kept for subtle hover surfaces (do not overwrite it). */
+/* shadcn design tokens. --brand is the monochrome brand color (black in light,
+   white in dark) routed into --primary / --ring. shadcn's own --accent token is
+   kept for subtle hover surfaces (do not overwrite it). */
 :root {
   color-scheme: light;
   /* Monochrome: brand is near-black in light, near-white in dark (set below).
