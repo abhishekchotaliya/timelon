@@ -81,6 +81,11 @@ pub fn run() {
             None,
         ))
         .setup(|app| {
+            // Menu-bar accessory app: no Dock icon, hidden from the Cmd-Tab app
+            // switcher. Windows still open on demand; the tray is always present.
+            #[cfg(target_os = "macos")]
+            let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
             let handle = app.handle().clone();
 
             let data_dir = handle.path().app_data_dir().expect("resolve app data dir");

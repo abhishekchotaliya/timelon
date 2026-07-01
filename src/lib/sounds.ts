@@ -5,10 +5,20 @@ export type Sound = { id: string; label: string; file: string };
 
 export const SOUNDS: Sound[] = [
   { id: "chime", label: "Chime", file: "/sounds/chime.wav" },
-  { id: "bell", label: "Bell", file: "/sounds/bell.wav" },
-  { id: "ping", label: "Ping", file: "/sounds/ping.wav" },
-  { id: "marimba", label: "Marimba", file: "/sounds/marimba.wav" },
   { id: "pulse", label: "Pulse", file: "/sounds/pulse.wav" },
+  // Longer (3-4s), modern tones.
+  { id: "bloom", label: "Bloom", file: "/sounds/bloom.wav" },
+  { id: "aurora", label: "Aurora", file: "/sounds/aurora.wav" },
+  { id: "cascade", label: "Cascade", file: "/sounds/cascade.wav" },
+  { id: "kalimba", label: "Kalimba", file: "/sounds/kalimba.wav" },
+  { id: "bowl", label: "Singing Bowl", file: "/sounds/bowl.wav" },
+  { id: "notify", label: "Notify", file: "/sounds/notify.wav" },
+  { id: "flute", label: "Flute", file: "/sounds/flute.wav" },
+  { id: "techno", label: "Techno", file: "/sounds/techno.wav" },
+  { id: "drum", label: "Drum", file: "/sounds/drum.wav" },
+  { id: "neon", label: "Neon", file: "/sounds/neon.wav" },
+  { id: "arcade", label: "Arcade", file: "/sounds/arcade.wav" },
+  { id: "cartoon", label: "Cartoon", file: "/sounds/cartoon.wav" },
 ];
 
 export const DEFAULT_SOUND_ID = "chime";
