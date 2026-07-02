@@ -21,12 +21,22 @@ export function TimerRing({ phase, remainingSecs, plannedSecs }: Props) {
   const progress = plannedSecs > 0 ? (plannedSecs - remainingSecs) / plannedSecs : 0;
   const offset = circ * (1 - Math.min(1, Math.max(0, progress)));
 
+  // Ring color follows the current phase (set as currentColor on the svg).
+  const phaseVar =
+    phase === "focus" ? "--focus" : phase === "short_break" ? "--break" : "--long-break";
+
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="timer-ring">
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className="timer-ring"
+      style={{ color: `var(${phaseVar})` }}
+    >
       <defs>
         <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="var(--brand)" stopOpacity={1} />
-          <stop offset="100%" stopColor="var(--brand)" stopOpacity={0.55} />
+          <stop offset="0%" stopColor="currentColor" stopOpacity={1} />
+          <stop offset="100%" stopColor="currentColor" stopOpacity={0.55} />
         </linearGradient>
       </defs>
       <circle

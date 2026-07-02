@@ -13,6 +13,7 @@ import { emit, listen } from "@tauri-apps/api/event";
 
 import type { TimerConfig } from "../types";
 import { setWindowTheme } from "./ipc";
+import { applyColorScheme, type ColorScheme } from "./colors";
 import { applyTheme, watchSystemTheme, type ThemeMode } from "./theme";
 
 export type Settings = {
@@ -24,6 +25,7 @@ export type Settings = {
   autoStartFocus: boolean;
   launchAtLogin: boolean;
   theme: ThemeMode;
+  colorScheme: ColorScheme;
   soundId: string;
   volume: number;
 };
@@ -37,6 +39,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoStartFocus: false,
   launchAtLogin: false,
   theme: "system",
+  colorScheme: "classic",
   soundId: "chime",
   volume: 0.7,
 };
@@ -131,11 +134,12 @@ export function useApplyTheme() {
   const { settings } = useSettings();
   useEffect(() => {
     applyTheme(settings.theme);
+    applyColorScheme(settings.colorScheme);
     // Keep the native window (vibrancy) appearance in sync so the blur material
     // matches the theme — otherwise light-theme text sits on a dark blur.
     setWindowTheme(settings.theme);
     if (settings.theme === "system") {
       return watchSystemTheme(() => applyTheme(settings.theme));
     }
-  }, [settings.theme]);
+  }, [settings.theme, settings.colorScheme]);
 }

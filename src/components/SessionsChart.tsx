@@ -23,8 +23,8 @@ export function SessionsChart({ data }: { data: Bucket[] }) {
           <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
             <defs>
               <linearGradient id="sessFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--brand)" stopOpacity={0.5} />
-                <stop offset="100%" stopColor="var(--brand)" stopOpacity={0.05} />
+                <stop offset="0%" stopColor="var(--focus)" stopOpacity={0.5} />
+                <stop offset="100%" stopColor="var(--focus)" stopOpacity={0.05} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -38,7 +38,7 @@ export function SessionsChart({ data }: { data: Bucket[] }) {
               type="monotone"
               dataKey="sessions"
               name="Sessions"
-              stroke="var(--brand)"
+              stroke="var(--focus)"
               strokeWidth={2}
               fill="url(#sessFill)"
             />

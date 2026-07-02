@@ -1,6 +1,7 @@
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
 import { useSettings } from "../lib/settings";
+import { COLOR_SCHEMES, type ColorScheme } from "../lib/colors";
 import { play, SOUNDS } from "../lib/sounds";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -153,6 +154,38 @@ export function SettingsView() {
                 <SelectItem value="system">System</SelectItem>
                 <SelectItem value="light">Light</SelectItem>
                 <SelectItem value="dark">Dark</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-3">
+            <Label className="flex-1">Color scheme</Label>
+            <div className="flex gap-1">
+              {(["focus", "break", "longBreak"] as const).map((k) => (
+                <span
+                  key={k}
+                  className="h-4 w-4 rounded-full border border-border"
+                  style={{
+                    background:
+                      settings.colorScheme === "mono"
+                        ? "var(--muted-foreground)"
+                        : COLOR_SCHEMES[settings.colorScheme][k],
+                  }}
+                />
+              ))}
+            </div>
+            <Select
+              value={settings.colorScheme}
+              onValueChange={(v) => update({ colorScheme: v as ColorScheme })}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(COLOR_SCHEMES) as ColorScheme[]).map((k) => (
+                  <SelectItem key={k} value={k}>
+                    {COLOR_SCHEMES[k].label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

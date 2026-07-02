@@ -13,11 +13,11 @@ import type { Bucket } from "../lib/stats";
 import { ChartTooltip } from "./ChartTooltip";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
-// Monochrome shades matching the all-time pie.
+// Phase colors from the active color scheme.
 const COLORS = {
-  focus: "var(--brand)",
-  break: "color-mix(in srgb, var(--brand) 55%, var(--muted-foreground))",
-  longBreak: "color-mix(in srgb, var(--brand) 22%, var(--muted-foreground))",
+  focus: "var(--focus)",
+  break: "var(--break)",
+  longBreak: "var(--long-break)",
 };
 
 export function FocusBarChart({ data }: { data: Bucket[] }) {

@@ -31,6 +31,11 @@
   --ring: var(--brand);
   --radius: 1rem;
   --glass-blur: 24px;
+
+  /* Phase colors (overridden at runtime by the color scheme). */
+  --focus: #2f9e44;
+  --break: #f2b705;
+  --long-break: #e8590c;
 }
 
 :root[data-theme="dark"] {
@@ -144,7 +149,8 @@
 .ring-fg {
   stroke: url(#ringGrad);
   transition: stroke-dashoffset 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--brand) 45%, transparent));
+  /* currentColor is set per phase on the <svg> (see TimerRing). */
+  filter: drop-shadow(0 0 7px color-mix(in srgb, currentColor 55%, transparent));
 }
 .ring-time {
   fill: var(--foreground);

@@ -3,12 +3,8 @@ import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import type { PieData } from "../lib/stats";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
-// Three monochrome shades (brand blended toward the muted gray).
-const COLORS = [
-  "var(--brand)",
-  "color-mix(in srgb, var(--brand) 55%, var(--muted-foreground))",
-  "color-mix(in srgb, var(--brand) 22%, var(--muted-foreground))",
-];
+// Phase colors from the active color scheme.
+const COLORS = ["var(--focus)", "var(--break)", "var(--long-break)"];
 
 function fmt(min: number): string {
   return min >= 60 ? `${(min / 60).toFixed(1)} h` : `${Math.round(min)} min`;
