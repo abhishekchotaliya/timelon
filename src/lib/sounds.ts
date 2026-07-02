@@ -23,10 +23,19 @@ export const SOUNDS: Sound[] = [
 
 export const DEFAULT_SOUND_ID = "chime";
 
+// Single shared player so a new tone never overlaps a still-ringing one
+// (overlap comb-filters into an echoey/reverbed sound).
+let current: HTMLAudioElement | null = null;
+
 export function play(soundId: string, volume: number) {
   const sound = SOUNDS.find((s) => s.id === soundId) ?? SOUNDS[0];
+  if (current) {
+    current.pause();
+    current.currentTime = 0;
+  }
   const audio = new Audio(sound.file);
   audio.volume = Math.max(0, Math.min(1, volume));
+  current = audio;
   void audio.play().catch(() => {
     /* autoplay can be blocked until first interaction; ignore */
   });
