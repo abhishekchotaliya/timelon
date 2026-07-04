@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Controls } from "../components/Controls";
 import { TimerRing } from "../components/TimerRing";
 import {
-  onPhaseChange,
   onTick,
   setConfig,
   timerPause,
@@ -13,28 +12,19 @@ import {
   timerStart,
 } from "../lib/ipc";
 import { toTimerConfig, useSettings } from "../lib/settings";
-import { play } from "../lib/sounds";
 import type { TimerSnapshot } from "../types";
 
 export function TimerView() {
   const { settings, loaded } = useSettings();
   const [snap, setSnap] = useState<TimerSnapshot | null>(null);
 
-  // Keep the latest sound prefs in a ref so the phase-change listener (set up
-  // once) always plays with current settings.
-  const soundRef = useRef({ soundId: settings.soundId, volume: settings.volume });
-  soundRef.current = { soundId: settings.soundId, volume: settings.volume };
-
-  // Hydrate + subscribe to engine events once.
+  // Hydrate + subscribe to tick events (the alert sound is handled at the app
+  // root so it plays on any tab). Ticks are emitted at phase boundaries too.
   useEffect(() => {
     timerSnapshot().then(setSnap).catch(() => {});
     const unticks = onTick(setSnap);
-    const unphase = onPhaseChange(() => {
-      play(soundRef.current.soundId, soundRef.current.volume);
-    });
     return () => {
       unticks.then((f) => f());
-      unphase.then((f) => f());
     };
   }, []);
 

@@ -1,13 +1,28 @@
-import React, { Suspense, lazy, useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { Clock } from "lucide-react";
 
-import { onNavigate } from "./lib/ipc";
-import { SettingsProvider, useApplyTheme } from "./lib/settings";
+import { onNavigate, onPhaseChange } from "./lib/ipc";
+import { SettingsProvider, useApplyTheme, useSettings } from "./lib/settings";
+import { play } from "./lib/sounds";
 import { TimerView } from "./views/TimerView";
 import { SettingsView } from "./views/SettingsView";
 import { cn } from "./lib/utils";
 import "./styles.css";
+
+// Play the alert on every phase change, from the always-mounted root, so it
+// works on any tab and always uses the currently-selected sound (via ref).
+function useAlertSound() {
+  const { settings } = useSettings();
+  const ref = useRef({ soundId: settings.soundId, volume: settings.volume });
+  ref.current = { soundId: settings.soundId, volume: settings.volume };
+  useEffect(() => {
+    const un = onPhaseChange(() => play(ref.current.soundId, ref.current.volume));
+    return () => {
+      un.then((f) => f());
+    };
+  }, []);
+}
 
 // Stats pulls in Recharts (the bulk of the bundle); load it only when opened.
 const StatsView = lazy(() =>
@@ -18,6 +33,7 @@ type Tab = "timer" | "stats" | "settings";
 
 function App() {
   useApplyTheme();
+  useAlertSound();
   const [tab, setTab] = useState<Tab>("timer");
 
   // The tray menu can route us to a specific section.
