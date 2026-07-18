@@ -98,8 +98,9 @@ export function StatsView() {
       {result ? (
         <>
           <StatCards totals={result.totals} />
-          {/* Remount charts on period/anchor change to replay entry animation. */}
-          <AllTimePie key={`pie-${chartKey}`} data={result.pie} />
+          {/* Pie isn't remounted so its odometer numbers roll on filter change;
+              recharts morphs the slices. Bar/area remount to replay draw-in. */}
+          <AllTimePie data={result.pie} />
           <FocusBarChart key={`bar-${chartKey}`} data={result.buckets} title={barTitle} />
           <SessionsChart key={`area-${chartKey}`} data={result.buckets} />
         </>

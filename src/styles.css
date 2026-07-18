@@ -165,3 +165,50 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
+
+/* Odometer / suitcase-lock number roll. Each digit is a vertical column of
+   0–9; a translateY slides the column so the target digit rests at top,
+   rolling smoothly through the intermediate digits. Edges fade for a subtle
+   motion feel. Static chars (unit letters, '.', '%') share the same box so the
+   whole value stays baseline-aligned. */
+.odo {
+  display: inline-flex;
+  align-items: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+.odo-static {
+  display: inline-block;
+  height: 1em;
+  line-height: 1em;
+}
+.odo-digit {
+  display: inline-block;
+  height: 1em;
+  line-height: 1em;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
+}
+.odo-col {
+  display: flex;
+  flex-direction: column;
+  transition: transform 550ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.odo-cell {
+  height: 1em;
+  line-height: 1em;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .odo-col {
+    transition: none;
+  }
+}
