@@ -20,11 +20,11 @@ const COLORS = {
   longBreak: "var(--long-break)",
 };
 
-export function FocusBarChart({ data }: { data: Bucket[] }) {
+export function FocusBarChart({ data, title = "Time per day" }: { data: Bucket[]; title?: string }) {
   return (
     <Card className="mb-[18px]">
       <CardHeader>
-        <CardTitle>Time per day</CardTitle>
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={260}>

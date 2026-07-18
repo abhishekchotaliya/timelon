@@ -18,6 +18,9 @@ export const setConfig = (cfg: TimerConfig) =>
 export const statsDaily = (startDay: string, endDay: string) =>
   invoke<DayStat[]>("stats_daily", { startDay, endDay });
 
+// Oldest logged day (YYYY-MM-DD) or null if no sessions yet.
+export const statsFirstDay = () => invoke<string | null>("stats_first_day");
+
 /// Match the native window appearance (macOS vibrancy) to the app theme.
 export const setWindowTheme = (theme: "light" | "dark" | "system") =>
   invoke<void>("set_window_theme", { theme }).catch(() => {});

@@ -98,3 +98,12 @@ pub async fn query_daily(
     .fetch_all(pool)
     .await
 }
+
+/// Oldest logged calendar day (`YYYY-MM-DD`), or `None` if no sessions exist.
+/// Used by the UI to bound how far back period navigation can go.
+pub async fn query_first_day(pool: &SqlitePool) -> Result<Option<String>, sqlx::Error> {
+    let row: (Option<String>,) = sqlx::query_as("SELECT MIN(day) FROM sessions")
+        .fetch_one(pool)
+        .await?;
+    Ok(row.0)
+}

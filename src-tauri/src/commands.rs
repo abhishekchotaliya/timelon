@@ -108,3 +108,10 @@ pub async fn stats_daily(
         .await
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+pub async fn stats_first_day(state: State<'_, AppState>) -> Result<Option<String>, String> {
+    db::query_first_day(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
