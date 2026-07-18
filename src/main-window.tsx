@@ -61,7 +61,7 @@ function App() {
   );
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-background/35">
       <nav className="flex w-[168px] flex-col gap-1 border-r border-border bg-card p-3 backdrop-blur-2xl">
         <div className="flex items-center gap-2 px-2.5 pb-4 pt-1.5 text-lg font-bold tracking-tight text-foreground">
           <Clock className="h-5 w-5" strokeWidth={2.5} />

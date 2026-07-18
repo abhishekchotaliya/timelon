@@ -23,6 +23,30 @@ export const SOUNDS: Sound[] = [
 
 export const DEFAULT_SOUND_ID = "chime";
 
+// Neutralize the macOS media keys for our alert. An <audio> element makes the
+// page the "Now Playing" target, so the play/pause key (F8) would replay the
+// tone. Installing no-op media-session handlers overrides that default so the
+// media key does nothing to us.
+if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
+  const noop = () => {};
+  const actions: MediaSessionAction[] = [
+    "play",
+    "pause",
+    "stop",
+    "previoustrack",
+    "nexttrack",
+    "seekbackward",
+    "seekforward",
+  ];
+  for (const a of actions) {
+    try {
+      navigator.mediaSession.setActionHandler(a, noop);
+    } catch {
+      /* action not supported on this platform */
+    }
+  }
+}
+
 // Single shared player so a new tone never overlaps a still-ringing one
 // (overlap comb-filters into an echoey/reverbed sound).
 let current: HTMLAudioElement | null = null;
