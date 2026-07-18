@@ -12,6 +12,16 @@ use crate::AppState;
 
 const TRAY_ID: &str = "main-tray";
 
+/// Menu-bar rendering style: "default" (native template icon + title text) or
+/// "solid" (a knockout pill image rendered by the frontend and pushed via
+/// `set_tray_image`). In solid mode the native title/icon updates are skipped
+/// so the two drivers never fight.
+static TRAY_STYLE: Mutex<String> = Mutex::new(String::new());
+
+fn is_solid() -> bool {
+    TRAY_STYLE.lock().unwrap().as_str() == "solid"
+}
+
 /// Per-phase monochrome template icons (scripts/gen-tray-icons.mjs). Shown in
 /// the menu bar and swapped when the phase changes.
 const ICON_FOCUS: &[u8] = include_bytes!("../icons/focus.png");
@@ -157,6 +167,16 @@ static LAST_TRAY_TIME: Mutex<String> = Mutex::new(String::new());
 
 pub fn update_tray_title(app: &AppHandle, snap: &TimerSnapshot) {
     let time = fmt_mmss(snap.remaining_secs);
+
+    // In solid mode the frontend owns the icon image; only keep the tooltip
+    // fresh and let `set_tray_image` drive the visible menu-bar content.
+    if is_solid() {
+        if let Some(tray) = app.tray_by_id(TRAY_ID) {
+            let _ = tray.set_tooltip(Some(format!("{} — {}", snap.phase.label(), time)));
+        }
+        return;
+    }
+
     {
         let mut last = LAST_TRAY_TIME.lock().unwrap();
         if *last == time {
@@ -193,6 +213,40 @@ pub fn update_tray_title(app: &AppHandle, snap: &TimerSnapshot) {
 
 /// Last phase whose icon is shown, so we only swap the tray icon on change.
 static LAST_ICON_PHASE: Mutex<u8> = Mutex::new(255);
+
+/// Switch the menu-bar style. On "default" we immediately restore the native
+/// title + icon from `snap`; on "solid" we clear the native title so no stale
+/// text lingers before the frontend pushes its first image.
+pub fn set_style(app: &AppHandle, style: &str, snap: &TimerSnapshot) {
+    *TRAY_STYLE.lock().unwrap() = style.to_string();
+    // Force the next native redraw (dedupe caches would otherwise skip it).
+    *LAST_TRAY_TIME.lock().unwrap() = String::new();
+    *LAST_ICON_PHASE.lock().unwrap() = 255;
+
+    if style == "solid" {
+        if let Some(tray) = app.tray_by_id(TRAY_ID) {
+            let _ = tray.set_title(Some("")); // None doesn't reliably clear on macOS
+        }
+    } else {
+        update_tray_title(app, snap);
+    }
+}
+
+/// Set the menu-bar icon to a PNG rendered by the frontend (solid mode only).
+/// Ignored unless solid is active, so a late in-flight image can't clobber the
+/// native view after the user switches back.
+pub fn set_image(app: &AppHandle, png: &[u8]) {
+    if !is_solid() {
+        return;
+    }
+    if let Some(tray) = app.tray_by_id(TRAY_ID) {
+        if let Ok(img) = tauri::image::Image::from_bytes(png) {
+            let _ = tray.set_icon(Some(img));
+            let _ = tray.set_icon_as_template(true);
+            let _ = tray.set_title(Some("")); // None doesn't reliably clear on macOS
+        }
+    }
+}
 
 /// Map ASCII digits to Unicode mathematical-monospace digits (U+1D7F6..), which
 /// are all equal width, keeping the menu-bar time from jittering. Other chars

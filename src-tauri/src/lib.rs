@@ -117,6 +117,8 @@ pub fn run() {
             commands::stats_daily,
             commands::stats_first_day,
             commands::set_window_theme,
+            commands::set_menu_bar_style,
+            commands::set_tray_image,
         ])
         .on_window_event(|window, event| {
             // Hide windows on close instead of destroying them, so the tray /

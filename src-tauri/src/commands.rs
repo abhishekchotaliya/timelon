@@ -98,6 +98,20 @@ pub fn set_config(app: AppHandle, state: State<AppState>, cfg: TimerConfig) -> T
     snap
 }
 
+/// Switch the menu-bar style ("default" | "solid"). Restores the native view
+/// or hands off to the frontend-rendered image accordingly.
+#[tauri::command]
+pub fn set_menu_bar_style(app: AppHandle, state: State<AppState>, style: String) {
+    let snap = state.engine.lock().unwrap().snapshot();
+    tray::set_style(&app, &style, &snap);
+}
+
+/// Push a frontend-rendered PNG as the menu-bar icon (solid mode).
+#[tauri::command]
+pub fn set_tray_image(app: AppHandle, png: Vec<u8>) {
+    tray::set_image(&app, &png);
+}
+
 #[tauri::command]
 pub async fn stats_daily(
     state: State<'_, AppState>,

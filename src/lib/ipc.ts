@@ -25,6 +25,14 @@ export const statsFirstDay = () => invoke<string | null>("stats_first_day");
 export const setWindowTheme = (theme: "light" | "dark" | "system") =>
   invoke<void>("set_window_theme", { theme }).catch(() => {});
 
+/// Switch the menu-bar rendering style (native text vs. solid pill image).
+export const setMenuBarStyle = (style: "default" | "solid") =>
+  invoke<void>("set_menu_bar_style", { style }).catch(() => {});
+
+/// Push a frontend-rendered PNG as the menu-bar icon (solid style).
+export const setTrayImage = (png: Uint8Array) =>
+  invoke<void>("set_tray_image", { png: Array.from(png) }).catch(() => {});
+
 export const onTick = (cb: (s: TimerSnapshot) => void): Promise<UnlistenFn> =>
   listen<TimerSnapshot>("tick", (e) => cb(e.payload));
 

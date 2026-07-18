@@ -26,9 +26,14 @@ export type Settings = {
   launchAtLogin: boolean;
   theme: ThemeMode;
   colorScheme: ColorScheme;
+  menuBarStyle: MenuBarStyle;
   soundId: string;
   volume: number;
 };
+
+// Menu-bar rendering: "default" (native template icon + text) or "solid" (a
+// knockout pill image). Persisted here; the tray is told via set_menu_bar_style.
+export type MenuBarStyle = "default" | "solid";
 
 export const DEFAULT_SETTINGS: Settings = {
   focusSecs: 25 * 60,
@@ -40,6 +45,7 @@ export const DEFAULT_SETTINGS: Settings = {
   launchAtLogin: false,
   theme: "system",
   colorScheme: "classic",
+  menuBarStyle: "default",
   soundId: "chime",
   volume: 0.7,
 };

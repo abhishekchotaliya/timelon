@@ -2,9 +2,18 @@ import React, { Suspense, lazy, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { Clock } from "lucide-react";
 
-import { onNavigate, onPhaseChange } from "./lib/ipc";
+import {
+  onNavigate,
+  onPhaseChange,
+  onTick,
+  setMenuBarStyle,
+  setTrayImage,
+  timerSnapshot,
+} from "./lib/ipc";
 import { SettingsProvider, useApplyTheme, useSettings } from "./lib/settings";
 import { play } from "./lib/sounds";
+import { mmss, renderTrayIcon } from "./lib/trayIcon";
+import type { TimerSnapshot } from "./types";
 import { TimerView } from "./views/TimerView";
 import { SettingsView } from "./views/SettingsView";
 import { cn } from "./lib/utils";
@@ -24,6 +33,50 @@ function useAlertSound() {
   }, []);
 }
 
+// Drives the "solid" menu-bar style. The always-mounted root gets every tick
+// (emitted while running + on any state change), renders a knockout-pill PNG,
+// and pushes it to the tray. In "default" style Rust owns the native title/icon
+// so we render nothing. Runs here (not in a tab) so it's live regardless of the
+// open view and even while the window is hidden.
+function useMenuBarTray() {
+  const { settings, loaded } = useSettings();
+  const style = settings.menuBarStyle;
+  const styleRef = useRef(style);
+  styleRef.current = style;
+  const snapRef = useRef<TimerSnapshot | null>(null);
+
+  const push = (s: TimerSnapshot | null) => {
+    if (!s || styleRef.current !== "solid") return;
+    renderTrayIcon(s.phase, mmss(s.remainingSecs))
+      .then(setTrayImage)
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    timerSnapshot()
+      .then((s) => {
+        snapRef.current = s;
+        push(s);
+      })
+      .catch(() => {});
+    const un = onTick((s) => {
+      snapRef.current = s;
+      push(s);
+    });
+    return () => {
+      un.then((f) => f());
+    };
+  }, []);
+
+  // Tell the tray which style to use; render immediately when switching to solid
+  // (Rust restores the native view for "default").
+  useEffect(() => {
+    if (!loaded) return;
+    setMenuBarStyle(style);
+    if (style === "solid") push(snapRef.current);
+  }, [loaded, style]);
+}
+
 // Stats pulls in Recharts (the bulk of the bundle); load it only when opened.
 const StatsView = lazy(() =>
   import("./views/StatsView").then((m) => ({ default: m.StatsView })),
@@ -34,6 +87,7 @@ type Tab = "timer" | "stats" | "settings";
 function App() {
   useApplyTheme();
   useAlertSound();
+  useMenuBarTray();
   const [tab, setTab] = useState<Tab>("timer");
 
   // The tray menu can route us to a specific section.

@@ -1,6 +1,7 @@
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
-import { useSettings } from "../lib/settings";
+import { useSettings, type MenuBarStyle } from "../lib/settings";
+import { cn } from "../lib/utils";
 import { COLOR_SCHEMES, type ColorScheme } from "../lib/colors";
 import { play, SOUNDS } from "../lib/sounds";
 import { Button } from "../components/ui/button";
@@ -60,6 +61,36 @@ function ToggleRow({
     </div>
   );
 }
+
+// Style choices for the menu-bar picker, each with a tiny live-ish preview of
+// how the tray renders (thin default vs. filled knockout pill).
+const MENU_BAR_OPTIONS: {
+  value: MenuBarStyle;
+  label: string;
+  desc: string;
+  preview: React.ReactNode;
+}[] = [
+  {
+    value: "default",
+    label: "Default",
+    desc: "Thin icon + native text.",
+    preview: (
+      <span className="flex items-center gap-1 text-[12px] font-medium text-foreground">
+        <span className="text-[13px]">◎</span> 12:34
+      </span>
+    ),
+  },
+  {
+    value: "solid",
+    label: "Solid",
+    desc: "Filled pill, icon + time cut out.",
+    preview: (
+      <span className="flex items-center gap-1 rounded-full bg-foreground px-2.5 py-1 text-[12px] font-semibold text-background">
+        <span className="text-[13px]">◎</span> 12:34
+      </span>
+    ),
+  },
+];
 
 export function SettingsView() {
   const { settings, update } = useSettings();
@@ -188,6 +219,49 @@ export function SettingsView() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Menu bar</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2.5">
+            {MENU_BAR_OPTIONS.map((o) => {
+              const active = settings.menuBarStyle === o.value;
+              return (
+                <button
+                  key={o.value}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => update({ menuBarStyle: o.value })}
+                  className={cn(
+                    "flex flex-col gap-2.5 rounded-lg border p-3 text-left transition-colors",
+                    active
+                      ? "border-primary ring-1 ring-primary"
+                      : "border-input hover:bg-muted",
+                  )}
+                >
+                  <div className="flex h-9 items-center justify-center rounded-md bg-muted">
+                    {o.preview}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "flex h-4 w-4 items-center justify-center rounded-full border",
+                        active ? "border-primary" : "border-input",
+                      )}
+                    >
+                      {active && <span className="h-2 w-2 rounded-full bg-primary" />}
+                    </span>
+                    <span className="text-sm font-medium">{o.label}</span>
+                  </div>
+                  <span className="text-[12px] text-muted-foreground">{o.desc}</span>
+                </button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
