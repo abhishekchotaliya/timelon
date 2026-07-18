@@ -41,6 +41,9 @@ export function SessionsChart({ data }: { data: Bucket[] }) {
               stroke="var(--focus)"
               strokeWidth={2}
               fill="url(#sessFill)"
+              isAnimationActive
+              animationDuration={700}
+              animationEasing="ease-out"
             />
           </AreaChart>
         </ResponsiveContainer>

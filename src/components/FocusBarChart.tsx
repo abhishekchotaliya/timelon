@@ -40,14 +40,33 @@ export function FocusBarChart({ data, title = "Time per day" }: { data: Bucket[]
               iconType="circle"
               wrapperStyle={{ fontSize: 12, color: "var(--muted-foreground)" }}
             />
-            <Bar dataKey="focusMin" stackId="t" name="Focus" fill={COLORS.focus} />
-            <Bar dataKey="breakMin" stackId="t" name="Break" fill={COLORS.break} />
+            <Bar
+              dataKey="focusMin"
+              stackId="t"
+              name="Focus"
+              fill={COLORS.focus}
+              isAnimationActive
+              animationDuration={700}
+              animationEasing="ease-out"
+            />
+            <Bar
+              dataKey="breakMin"
+              stackId="t"
+              name="Break"
+              fill={COLORS.break}
+              isAnimationActive
+              animationDuration={700}
+              animationEasing="ease-out"
+            />
             <Bar
               dataKey="longBreakMin"
               stackId="t"
               name="Long break"
               fill={COLORS.longBreak}
               radius={[6, 6, 0, 0]}
+              isAnimationActive
+              animationDuration={700}
+              animationEasing="ease-out"
             />
           </BarChart>
         </ResponsiveContainer>

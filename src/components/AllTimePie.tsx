@@ -1,6 +1,7 @@
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
 import type { PieData } from "../lib/stats";
+import { AnimatedNumber } from "./AnimatedNumber";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 // Phase colors from the active color scheme.
@@ -9,6 +10,8 @@ const COLORS = ["var(--focus)", "var(--break)", "var(--long-break)"];
 function fmt(min: number): string {
   return min >= 60 ? `${(min / 60).toFixed(1)} h` : `${Math.round(min)} min`;
 }
+
+const fmtPct = (n: number): string => `${Math.round(n)}%`;
 
 export function AllTimePie({ data }: { data: PieData }) {
   const slices = [
@@ -39,6 +42,9 @@ export function AllTimePie({ data }: { data: PieData }) {
                     outerRadius={86}
                     paddingAngle={2}
                     stroke="none"
+                    isAnimationActive
+                    animationDuration={750}
+                    animationEasing="ease-out"
                   >
                     {slices.map((_, i) => (
                       <Cell key={i} fill={COLORS[i]} />
@@ -47,7 +53,9 @@ export function AllTimePie({ data }: { data: PieData }) {
                 </PieChart>
               </ResponsiveContainer>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xl font-bold">{fmt(total)}</span>
+                <span className="text-xl font-bold tabular-nums">
+                  <AnimatedNumber value={total} format={fmt} />
+                </span>
                 <span className="text-[11px] text-muted-foreground">total</span>
               </div>
             </div>
@@ -59,11 +67,14 @@ export function AllTimePie({ data }: { data: PieData }) {
                     style={{ background: COLORS[i] }}
                   />
                   <span className="text-muted-foreground">{sl.name}</span>
-                  <span className="ml-auto font-semibold text-foreground">
-                    {fmt(sl.value)}
+                  <span className="ml-auto font-semibold tabular-nums text-foreground">
+                    <AnimatedNumber value={sl.value} format={fmt} />
                   </span>
-                  <span className="w-12 text-right text-xs text-muted-foreground">
-                    {total ? Math.round((sl.value / total) * 100) : 0}%
+                  <span className="w-12 text-right text-xs tabular-nums text-muted-foreground">
+                    <AnimatedNumber
+                      value={total ? (sl.value / total) * 100 : 0}
+                      format={fmtPct}
+                    />
                   </span>
                 </div>
               ))}

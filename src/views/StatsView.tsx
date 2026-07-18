@@ -14,6 +14,7 @@ import {
   loadStats,
   periodLabel,
   shiftAnchor,
+  toLocalDay,
   type Period,
   type StatsResult,
 } from "../lib/stats";
@@ -54,6 +55,7 @@ export function StatsView() {
   };
 
   const barTitle = period === "year" ? "Time per month" : "Time per day";
+  const chartKey = `${period}:${toLocalDay(anchor)}`;
 
   return (
     <div>
@@ -96,9 +98,10 @@ export function StatsView() {
       {result ? (
         <>
           <StatCards totals={result.totals} />
-          <AllTimePie data={result.pie} />
-          <FocusBarChart data={result.buckets} title={barTitle} />
-          <SessionsChart data={result.buckets} />
+          {/* Remount charts on period/anchor change to replay entry animation. */}
+          <AllTimePie key={`pie-${chartKey}`} data={result.pie} />
+          <FocusBarChart key={`bar-${chartKey}`} data={result.buckets} title={barTitle} />
+          <SessionsChart key={`area-${chartKey}`} data={result.buckets} />
         </>
       ) : (
         <p className="text-muted-foreground">
