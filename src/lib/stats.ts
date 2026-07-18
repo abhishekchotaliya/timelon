@@ -191,14 +191,11 @@ export async function loadStats(period: Period, anchor: Date): Promise<StatsResu
   const sessions = rows.reduce((sum, r) => sum + r.sessions, 0);
   const breaks = rows.reduce((sum, r) => sum + r.breaks, 0);
 
-  // All-time query drives the pie and the current streak, independent of the
-  // viewed period.
+  // Pie is scoped to the viewed period, like the cards and charts.
+  const pie: PieData = { focus: focusMin, shortBreak: breakMin, longBreak: longBreakMin };
+
+  // Streak is always the current all-time run, independent of the viewed period.
   const allRows = await statsDaily("1970-01-01", toLocalDay(new Date()));
-  const pie: PieData = {
-    focus: allRows.reduce((s, r) => s + r.focusMin, 0),
-    shortBreak: allRows.reduce((s, r) => s + r.breakMin, 0),
-    longBreak: allRows.reduce((s, r) => s + r.longBreakMin, 0),
-  };
 
   return {
     buckets,

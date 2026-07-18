@@ -21,7 +21,7 @@ export function AllTimePie({ data }: { data: PieData }) {
   return (
     <Card className="mb-[18px]">
       <CardHeader>
-        <CardTitle>All-time split</CardTitle>
+        <CardTitle>Time Split</CardTitle>
       </CardHeader>
       <CardContent>
         {total === 0 ? (
