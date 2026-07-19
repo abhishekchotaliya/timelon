@@ -1,9 +1,13 @@
 import { disable, enable } from "@tauri-apps/plugin-autostart";
+import { Monitor, Moon, Sun } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { useSettings, type MenuBarStyle } from "../lib/settings";
+import type { ThemeMode } from "../lib/theme";
 import { cn } from "../lib/utils";
 import { COLOR_SCHEMES, type ColorScheme } from "../lib/colors";
 import { play, SOUNDS } from "../lib/sounds";
+import { TrayPreview } from "../components/TrayPreview";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Label } from "../components/ui/label";
@@ -62,34 +66,59 @@ function ToggleRow({
   );
 }
 
-// Style choices for the menu-bar picker, each with a tiny live-ish preview of
-// how the tray renders (thin default vs. filled knockout pill).
-const MENU_BAR_OPTIONS: {
-  value: MenuBarStyle;
+// A selectable card with a preview swatch + radio dot. Reused by the menu-bar,
+// theme, and color-scheme pickers in place of dropdowns.
+function OptionCard({
+  active,
+  onClick,
+  preview,
+  label,
+  desc,
+}: {
+  active: boolean;
+  onClick: () => void;
+  preview: ReactNode;
   label: string;
-  desc: string;
-  preview: React.ReactNode;
-}[] = [
-  {
-    value: "default",
-    label: "Default",
-    desc: "Thin icon + native text.",
-    preview: (
-      <span className="flex items-center gap-1 text-[12px] font-medium text-foreground">
-        <span className="text-[13px]">◎</span> 12:34
-      </span>
-    ),
-  },
-  {
-    value: "solid",
-    label: "Solid",
-    desc: "Filled pill, icon + time cut out.",
-    preview: (
-      <span className="flex items-center gap-1 rounded-full bg-foreground px-2.5 py-1 text-[12px] font-semibold text-background">
-        <span className="text-[13px]">◎</span> 12:34
-      </span>
-    ),
-  },
+  desc?: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        "flex flex-col gap-2.5 rounded-lg border p-3 text-left transition-colors",
+        active ? "border-primary ring-1 ring-primary" : "border-input hover:bg-muted",
+      )}
+    >
+      <div className="flex h-9 items-center justify-center rounded-md bg-muted">{preview}</div>
+      <div className="flex items-center gap-2">
+        <span
+          className={cn(
+            "flex h-4 w-4 items-center justify-center rounded-full border",
+            active ? "border-primary" : "border-input",
+          )}
+        >
+          {active && <span className="h-2 w-2 rounded-full bg-primary" />}
+        </span>
+        <span className="text-sm font-medium">{label}</span>
+      </div>
+      {desc && <span className="text-[12px] text-muted-foreground">{desc}</span>}
+    </button>
+  );
+}
+
+// Style choices for the menu-bar picker. Previews are drawn by <TrayPreview>
+// with the same code as the real tray, so the font/layout matches exactly.
+const MENU_BAR_OPTIONS: { value: MenuBarStyle; label: string; desc: string }[] = [
+  { value: "default", label: "Default", desc: "Thin icon + time." },
+  { value: "solid", label: "Solid", desc: "Filled pill, icon + time cut out." },
+];
+
+const THEME_OPTIONS: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
+  { value: "system", label: "System", icon: Monitor },
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
 ];
 
 export function SettingsView() {
@@ -171,54 +200,48 @@ export function SettingsView() {
         <CardHeader>
           <CardTitle>Appearance</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3.5">
-          <div className="flex items-center gap-3">
-            <Label className="flex-1">Theme</Label>
-            <Select
-              value={settings.theme}
-              onValueChange={(v) => update({ theme: v as typeof settings.theme })}
-            >
-              <SelectTrigger className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="system">System</SelectItem>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-3">
-            <Label className="flex-1">Color scheme</Label>
-            <div className="flex gap-1">
-              {(["focus", "break", "longBreak"] as const).map((k) => (
-                <span
-                  key={k}
-                  className="h-4 w-4 rounded-full border border-border"
-                  style={{
-                    background:
-                      settings.colorScheme === "mono"
-                        ? "var(--muted-foreground)"
-                        : COLOR_SCHEMES[settings.colorScheme][k],
-                  }}
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Theme</Label>
+            <div className="grid grid-cols-3 gap-2.5">
+              {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
+                <OptionCard
+                  key={value}
+                  active={settings.theme === value}
+                  onClick={() => update({ theme: value })}
+                  label={label}
+                  preview={<Icon className="h-4 w-4 text-foreground" />}
                 />
               ))}
             </div>
-            <Select
-              value={settings.colorScheme}
-              onValueChange={(v) => update({ colorScheme: v as ColorScheme })}
-            >
-              <SelectTrigger className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.keys(COLOR_SCHEMES) as ColorScheme[]).map((k) => (
-                  <SelectItem key={k} value={k}>
-                    {COLOR_SCHEMES[k].label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          </div>
+          <div className="border-t border-border" />
+          <div className="space-y-2">
+            <Label>Color scheme</Label>
+            <div className="grid grid-cols-3 gap-2.5">
+              {(Object.keys(COLOR_SCHEMES) as ColorScheme[]).map((k) => (
+                <OptionCard
+                  key={k}
+                  active={settings.colorScheme === k}
+                  onClick={() => update({ colorScheme: k })}
+                  label={COLOR_SCHEMES[k].label}
+                  preview={
+                    <div className="flex gap-1">
+                      {(["focus", "break", "longBreak"] as const).map((c) => (
+                        <span
+                          key={c}
+                          className="h-4 w-4 rounded-full border border-border"
+                          style={{
+                            background:
+                              k === "mono" ? "var(--muted-foreground)" : COLOR_SCHEMES[k][c],
+                          }}
+                        />
+                      ))}
+                    </div>
+                  }
+                />
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -227,41 +250,37 @@ export function SettingsView() {
         <CardHeader>
           <CardTitle>Menu bar</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-2.5">
-            {MENU_BAR_OPTIONS.map((o) => {
-              const active = settings.menuBarStyle === o.value;
-              return (
-                <button
-                  key={o.value}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => update({ menuBarStyle: o.value })}
-                  className={cn(
-                    "flex flex-col gap-2.5 rounded-lg border p-3 text-left transition-colors",
-                    active
-                      ? "border-primary ring-1 ring-primary"
-                      : "border-input hover:bg-muted",
-                  )}
-                >
-                  <div className="flex h-9 items-center justify-center rounded-md bg-muted">
-                    {o.preview}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cn(
-                        "flex h-4 w-4 items-center justify-center rounded-full border",
-                        active ? "border-primary" : "border-input",
-                      )}
-                    >
-                      {active && <span className="h-2 w-2 rounded-full bg-primary" />}
-                    </span>
-                    <span className="text-sm font-medium">{o.label}</span>
-                  </div>
-                  <span className="text-[12px] text-muted-foreground">{o.desc}</span>
-                </button>
-              );
-            })}
+            {MENU_BAR_OPTIONS.map((o) => (
+              <OptionCard
+                key={o.value}
+                active={settings.menuBarStyle === o.value}
+                onClick={() => update({ menuBarStyle: o.value })}
+                preview={<TrayPreview style={o.value} />}
+                label={o.label}
+                desc={o.desc}
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <Label className="flex-1">
+              Size
+              <span className="mt-0.5 block text-[12px] font-normal text-muted-foreground">
+                Scales the icon + time in the menu bar.
+              </span>
+            </Label>
+            <Slider
+              className="w-[160px]"
+              min={0.5}
+              max={2}
+              step={0.1}
+              value={[settings.menuBarScale]}
+              onValueChange={([v]) => update({ menuBarScale: v })}
+            />
+            <span className="min-w-10 text-right text-[13px] tabular-nums text-muted-foreground">
+              {Math.round(settings.menuBarScale * 100)}%
+            </span>
           </div>
         </CardContent>
       </Card>

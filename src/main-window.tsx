@@ -41,13 +41,16 @@ function useAlertSound() {
 function useMenuBarTray() {
   const { settings, loaded } = useSettings();
   const style = settings.menuBarStyle;
+  const scale = settings.menuBarScale;
   const styleRef = useRef(style);
   styleRef.current = style;
+  const scaleRef = useRef(scale);
+  scaleRef.current = scale;
   const snapRef = useRef<TimerSnapshot | null>(null);
 
   const push = (s: TimerSnapshot | null) => {
-    if (!s || styleRef.current !== "solid") return;
-    renderTrayIcon(s.phase, mmss(s.remainingSecs))
+    if (!s) return;
+    renderTrayIcon(s.phase, mmss(s.remainingSecs), scaleRef.current, styleRef.current)
       .then(setTrayImage)
       .catch(() => {});
   };
@@ -68,13 +71,20 @@ function useMenuBarTray() {
     };
   }, []);
 
-  // Tell the tray which style to use; render immediately when switching to solid
-  // (Rust restores the native view for "default").
+  // Tell the tray which style to use, then render.
   useEffect(() => {
     if (!loaded) return;
     setMenuBarStyle(style);
-    if (style === "solid") push(snapRef.current);
+    push(snapRef.current);
   }, [loaded, style]);
+
+  // Re-render on size change only; debounced so dragging the slider doesn't
+  // fire a canvas render + IPC on every step.
+  useEffect(() => {
+    if (!loaded) return;
+    const t = setTimeout(() => push(snapRef.current), 80);
+    return () => clearTimeout(t);
+  }, [loaded, scale]);
 }
 
 // Stats pulls in Recharts (the bulk of the bundle); load it only when opened.

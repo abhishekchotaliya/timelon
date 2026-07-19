@@ -12,14 +12,15 @@ use crate::AppState;
 
 const TRAY_ID: &str = "main-tray";
 
-/// Menu-bar rendering style: "default" (native template icon + title text) or
-/// "solid" (a knockout pill image rendered by the frontend and pushed via
-/// `set_tray_image`). In solid mode the native title/icon updates are skipped
-/// so the two drivers never fight.
+/// Menu-bar style set by the frontend ("default" | "solid"). Both are rendered
+/// as images by the frontend and pushed via `set_tray_image`, so once a style
+/// is set the native title/icon updates are skipped and the two drivers never
+/// fight. Empty means the frontend hasn't loaded yet — we show the native
+/// template icon + title text as a startup fallback.
 static TRAY_STYLE: Mutex<String> = Mutex::new(String::new());
 
-fn is_solid() -> bool {
-    TRAY_STYLE.lock().unwrap().as_str() == "solid"
+fn frontend_driven() -> bool {
+    !TRAY_STYLE.lock().unwrap().is_empty()
 }
 
 /// Per-phase monochrome template icons (scripts/gen-tray-icons.mjs). Shown in
@@ -168,9 +169,9 @@ static LAST_TRAY_TIME: Mutex<String> = Mutex::new(String::new());
 pub fn update_tray_title(app: &AppHandle, snap: &TimerSnapshot) {
     let time = fmt_mmss(snap.remaining_secs);
 
-    // In solid mode the frontend owns the icon image; only keep the tooltip
-    // fresh and let `set_tray_image` drive the visible menu-bar content.
-    if is_solid() {
+    // Once the frontend is driving, it owns the icon image; only keep the
+    // tooltip fresh and let `set_tray_image` drive the visible menu-bar content.
+    if frontend_driven() {
         if let Some(tray) = app.tray_by_id(TRAY_ID) {
             let _ = tray.set_tooltip(Some(format!("{} — {}", snap.phase.label(), time)));
         }
@@ -214,29 +215,29 @@ pub fn update_tray_title(app: &AppHandle, snap: &TimerSnapshot) {
 /// Last phase whose icon is shown, so we only swap the tray icon on change.
 static LAST_ICON_PHASE: Mutex<u8> = Mutex::new(255);
 
-/// Switch the menu-bar style. On "default" we immediately restore the native
-/// title + icon from `snap`; on "solid" we clear the native title so no stale
-/// text lingers before the frontend pushes its first image.
+/// Switch the menu-bar style. Both styles are frontend-rendered images, so we
+/// just record the style, clear the native title (the frontend pushes its first
+/// image immediately), and refresh the tooltip.
 pub fn set_style(app: &AppHandle, style: &str, snap: &TimerSnapshot) {
     *TRAY_STYLE.lock().unwrap() = style.to_string();
-    // Force the next native redraw (dedupe caches would otherwise skip it).
+    // Force any later fallback redraw (dedupe caches would otherwise skip it).
     *LAST_TRAY_TIME.lock().unwrap() = String::new();
     *LAST_ICON_PHASE.lock().unwrap() = 255;
 
-    if style == "solid" {
-        if let Some(tray) = app.tray_by_id(TRAY_ID) {
-            let _ = tray.set_title(Some("")); // None doesn't reliably clear on macOS
-        }
-    } else {
-        update_tray_title(app, snap);
+    if let Some(tray) = app.tray_by_id(TRAY_ID) {
+        let _ = tray.set_title(Some("")); // None doesn't reliably clear on macOS
+        let _ = tray.set_tooltip(Some(format!(
+            "{} — {}",
+            snap.phase.label(),
+            fmt_mmss(snap.remaining_secs)
+        )));
     }
 }
 
-/// Set the menu-bar icon to a PNG rendered by the frontend (solid mode only).
-/// Ignored unless solid is active, so a late in-flight image can't clobber the
-/// native view after the user switches back.
+/// Set the menu-bar icon to a PNG rendered by the frontend. Ignored until a
+/// style is set, so a late in-flight image can't clobber the startup fallback.
 pub fn set_image(app: &AppHandle, png: &[u8]) {
-    if !is_solid() {
+    if !frontend_driven() {
         return;
     }
     if let Some(tray) = app.tray_by_id(TRAY_ID) {

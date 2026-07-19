@@ -2,15 +2,16 @@
 // Applied as CSS vars --focus, --break, --long-break; the app chrome stays
 // monochrome. "mono" derives shades from the brand color.
 
-export type ColorScheme = "classic" | "pastel" | "mono" | "fun" | "flat";
+export type ColorScheme = "classic" | "pastel" | "mono" | "fun" | "radient" | "flat";
 
 type Scheme = { label: string; focus: string; break: string; longBreak: string };
 
 export const COLOR_SCHEMES: Record<ColorScheme, Scheme> = {
   classic: { label: "Classic", focus: "#2f9e44", break: "#f2b705", longBreak: "#e8590c" },
-  pastel: { label: "Pastel", focus: "#74c69d", break: "#ffd166", longBreak: "#f4a261" },
+  pastel: { label: "Pastel", focus: "#786fa6", break: "#f78fb3", longBreak: "#f5cd79" },
   mono: { label: "Mono", focus: "", break: "", longBreak: "" }, // brand-derived
   fun: { label: "Fun", focus: "#06b6d4", break: "#a855f7", longBreak: "#f43f5e" },
+  radient: { label: "Radient", focus: "#3ae374", break: "#7d5fff", longBreak: "#ff9f1a" },
   flat: { label: "Flat", focus: "#1abc9c", break: "#f1c40f", longBreak: "#e67e22" },
 };
 

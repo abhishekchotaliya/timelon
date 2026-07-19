@@ -5,6 +5,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -27,6 +28,7 @@ export type Settings = {
   theme: ThemeMode;
   colorScheme: ColorScheme;
   menuBarStyle: MenuBarStyle;
+  menuBarScale: number; // solid-style pill size, 0.5–2.0 (1 = 100%)
   soundId: string;
   volume: number;
 };
@@ -46,6 +48,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: "system",
   colorScheme: "classic",
   menuBarStyle: "default",
+  menuBarScale: 1,
   soundId: "chime",
   volume: 0.7,
 };
@@ -108,19 +111,37 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Persist (disk write) + cross-window broadcast are debounced so dragging a
+  // slider doesn't thrash the store on every step; the in-memory state still
+  // updates synchronously so the UI stays responsive.
+  const pendingRef = useRef<Settings | null>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const flush = () => {
+    const next = pendingRef.current;
+    if (!next) return;
+    pendingRef.current = null;
+    void (async () => {
+      const store = await getStore();
+      await store.set(STORE_KEY, next);
+      await store.save();
+      // Notify the other windows (and ourselves; harmless) of the new state.
+      await emit(SETTINGS_EVENT, next);
+    })();
+  };
+
   const update = (patch: Partial<Settings>) => {
     setSettings((prev) => {
       const next = { ...prev, ...patch };
-      void (async () => {
-        const store = await getStore();
-        await store.set(STORE_KEY, next);
-        await store.save();
-        // Notify the other windows (and ourselves; harmless) of the new state.
-        await emit(SETTINGS_EVENT, next);
-      })();
+      pendingRef.current = next;
       return next;
     });
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(flush, 250);
   };
+
+  // Flush any pending write on unmount so a fast change isn't lost.
+  useEffect(() => () => flush(), []);
 
   return (
     <SettingsContext.Provider value={{ settings, loaded, update }}>
